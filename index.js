@@ -42,10 +42,15 @@ client.on("messageCreate", async (message) => {
 
   const data = await getData();
 
-  const results = data.filter(p => {
-    if (!p.ids) return false;
-    return args.every(id => p.ids.includes(id));
-  });
+const results = data.filter(p => {
+  if (!p.ids) return false;
+
+  const idsArray = p.ids
+    .split(",")
+    .map(x => x.trim()); // IMPORTANT
+
+  return args.every(id => idsArray.includes(id));
+});
 
   if (results.length === 0) {
     return message.reply("❌ Aucun résultat");
