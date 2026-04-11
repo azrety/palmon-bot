@@ -48,6 +48,16 @@ const getColor = (ids, attrMap) => {
   return 0x00AE86;
 };
 
+const getEmoji = (category) => {
+  switch (category) {
+    case "S": return "🟡";
+    case "A": return "🟣";
+    case "B": return "🔵";
+    case "C": return "⚪";
+    default: return "❔";
+  }
+};
+
 // 🔥 GET ATTR MAP
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
@@ -156,12 +166,14 @@ client.on("messageCreate", async (message) => {
   ]);
 
   const formatAttr = (id) => {
-    if (!id) return "-";
+  if (!id) return "-";
 
-    const attr = attrMap[id];
-    if (!attr) return id;
+  const attr = attrMap[id];
+  if (!attr) return id;
 
-    return `${id} (${attr.name})`;
+  const emoji = getEmoji(attr.category);
+
+  return `${emoji} ${id} [${attr.category}] (${attr.name})`;
   };
 
   const results = data.filter(p =>
@@ -179,11 +191,11 @@ client.on("messageCreate", async (message) => {
     .setDescription(
       results.map(p => {
         return `👤 **${p.pseudo}**
-⚔️ Attributs:
-• ${formatAttr(p.attr1)}
-• ${formatAttr(p.attr2)}
-• ${formatAttr(p.attr3)}
-• ${formatAttr(p.attr4)}
+  ⚔️ Attributs:
+  • ${formatAttr(p.attr1)}
+  • ${formatAttr(p.attr2)}
+  • ${formatAttr(p.attr3)}
+  • ${formatAttr(p.attr4)}
 `;
       }).join("\n")
     )
