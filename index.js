@@ -26,9 +26,8 @@ async function getData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
   const res = await fetch(url);
   const text = await res.text();
-  console.log("GOOGLE RAW:", text.slice(0, 200));
 
-  const match = text.match(/setResponse\(([\s\S]*)\);/);
+  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
   if (!match) {
     console.log("❌ Réponse Google invalide");
     return [];
