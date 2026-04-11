@@ -12,6 +12,16 @@ const client = new Client({
   ]
 });
 
+// 🔥 FORMAT SAFE
+const format = (cell) => {
+  if (!cell) return null;
+
+  const value = cell.v ?? cell.f;
+  if (value == null) return null;
+
+  return String(value).trim().padStart(3, "0");
+};
+
 async function getData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
   const res = await fetch(url);
@@ -27,19 +37,16 @@ async function getData() {
   const rows = json.table.rows;
 
   return rows.map((r, i) => {
-    const format = (x) => {
-      if (x === null || x === undefined) return null;
-      return String(x).padStart(3, "0"); // 🔥 force 033
-    };
+    const attr1 = format(r.c[1]);
+    const attr2 = format(r.c[2]);
+    const attr3 = format(r.c[3]);
+    const attr4 = format(r.c[4]);
 
-    const attr1 = format(r.c[1]?.v);
-    const attr2 = format(r.c[2]?.v);
-    const attr3 = format(r.c[3]?.v);
-    const attr4 = format(r.c[4]?.v);
+    // 🔥 on enlève les null + "000"
+    const ids = [attr1, attr2, attr3, attr4]
+      .filter(x => x && x !== "000");
 
-    const ids = [attr1, attr2, attr3, attr4].filter(Boolean);
-
-    console.log(`ROW ${i}:`, ids); // debug
+    console.log(`ROW ${i}:`, ids);
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
@@ -57,25 +64,28 @@ client.on("messageCreate", async (message) => {
 
   const content = message.content.trim();
 
-  // 🔒 UNIQUEMENT cette commande
+  // 🔒 commande unique
   if (!content.startsWith("/searchpalmon ")) return;
+
+  console.log("RAW CONTENT:", content);
 
   const args = content
     .replace("/searchpalmon", "")
     .trim()
-    .split(" ")
-    .map(id => id.padStart(3, "0")); // 🔥 normalisation
+    .split(/\s+/)
+    .map(id => id.trim().padStart(3, "0"));
 
   console.log("SEARCH:", args);
 
   const data = await getData();
 
-  console.log("DATA:", data);
+  // 🔥 DEBUG IDS
+  data.forEach(p => {
+    console.log("IDS:", p.ids);
+  });
 
   const results = data.filter(p =>
-    args.every(id =>
-      p.ids.map(x => x.padStart(3, "0")).includes(id)
-    )
+    args.every(id => p.ids.includes(id))
   );
 
   console.log("RESULTS:", results);
@@ -88,10 +98,10 @@ client.on("messageCreate", async (message) => {
 
   results.forEach(p => {
     msg += `👤 ${p.pseudo}\n`;
-    msg += `Attr1: ${p.attr1}\n`;
-    msg += `Attr2: ${p.attr2}\n`;
-    msg += `Attr3: ${p.attr3}\n`;
-    msg += `Attr4: ${p.attr4}\n`;
+    msg += `Attr1: ${p.attr1 || "-"}\n`;
+    msg += `Attr2: ${p.attr2 || "-"}\n`;
+    msg += `Attr3: ${p.attr3 || "-"}\n`;
+    msg += `Attr4: ${p.attr4 || "-"}\n`;
     msg += `----------------\n`;
   });
 
