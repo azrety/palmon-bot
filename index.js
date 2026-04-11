@@ -20,32 +20,47 @@ async function getData() {
   const match = text.match(/setResponse\(([\s\S]*)\);/);
 
   if (!match) {
-    console.log("❌ Réponse Google invalide :", text);
+    console.log("❌ Réponse Google invalide");
     return [];
   }
 
   const json = JSON.parse(match[1]);
   const rows = json.table.rows;
 
-  return rows.map(r => ({
-  pseudo: r.c[0]?.v || "Inconnu",
-  ids: [
-    r.c[1]?.v,
-    r.c[2]?.v,
-    r.c[3]?.v,
-    r.c[4]?.v
-  ]
-    .filter(Boolean)
-    .map(x => x.toString().padStart(3, "0"))
-}));
+  return rows.map(r => {
+    const ids = [
+      r.c[1]?.v,
+      r.c[2]?.v,
+      r.c[3]?.v,
+      r.c[4]?.v
+    ]
+      .filter(x => x !== null && x !== undefined)
+      .map(x => String(x).padStart(3, "0")); // 🔥 FIX 033
+
+    return {
+      pseudo: r.c[0]?.v || "Inconnu",
+      ids
+    };
+  });
 }
 
 client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
   console.log("RECU :", message.content);
 
-  if (!message.content.startsWith("/search")) return;
+  // 🔥 accepte plusieurs formats
+  let args = [];
 
-  const args = message.content.split(" ").slice(1);
+  if (message.content.startsWith("/search")) {
+    args = message.content.split(" ").slice(1);
+  } else {
+    // 👉 permet juste "033"
+    args = message.content.split(" ");
+  }
+
+  // nettoyage (important)
+  args = args.map(x => x.trim()).filter(Boolean);
 
   const data = await getData();
 
@@ -60,7 +75,7 @@ client.on("messageCreate", async (message) => {
   let msg = "✅ Résultats :\n";
 
   results.forEach(p => {
-    msg += `- ${p.pseudo} (${p.ids})\n`;
+    msg += `- ${p.pseudo} (${p.ids.join(", ")})\n`;
   });
 
   message.reply(msg);
