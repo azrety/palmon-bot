@@ -17,6 +17,8 @@ async function getData() {
   const res = await fetch(url);
   const text = await res.text();
 
+  console.log("RAW DATA:", text); // 👈 IMPORTANT
+
   const json = JSON.parse(text.substring(47).slice(0, -2));
   const rows = json.table.rows;
 
@@ -28,7 +30,7 @@ async function getData() {
 
 client.on("messageCreate", async (message) => {
   console.log("RECU :", message.content);
-  
+
   if (!message.content.startsWith("/search")) return;
 
   const args = message.content.split(" ").slice(1);
