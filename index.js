@@ -17,15 +17,19 @@ async function getData() {
   const res = await fetch(url);
   const text = await res.text();
 
-  // Extraction plus safe
-  const jsonString = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1];
-  const json = JSON.parse(jsonString);
+  const match = text.match(/setResponse\(([\s\S]*)\);/);
 
+  if (!match) {
+    console.log("❌ Réponse Google invalide :", text);
+    return [];
+  }
+
+  const json = JSON.parse(match[1]);
   const rows = json.table.rows;
 
   return rows.map(r => ({
-    pseudo: r.c[0]?.v,
-    ids: r.c[5]?.v
+    pseudo: r.c[0]?.v || "Inconnu",
+    ids: r.c[5]?.v || ""
   }));
 }
 
