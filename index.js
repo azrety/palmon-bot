@@ -27,6 +27,8 @@ async function getData() {
 }
 
 client.on("messageCreate", async (message) => {
+  console.log("RECU :", message.content);
+  
   if (!message.content.startsWith("/search")) return;
 
   const args = message.content.split(" ").slice(1);
