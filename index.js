@@ -24,17 +24,21 @@ async function getData() {
   const rows = json.table.rows;
 
   return rows.map(r => {
-    const ids = [
-      r.c[1]?.v,
-      r.c[2]?.v,
-      r.c[3]?.v,
-      r.c[4]?.v
-    ]
+    const attr1 = r.c[1]?.v;
+    const attr2 = r.c[2]?.v;
+    const attr3 = r.c[3]?.v;
+    const attr4 = r.c[4]?.v;
+
+    const ids = [attr1, attr2, attr3, attr4]
       .filter(x => x !== null && x !== undefined)
-      .map(x => String(x).padStart(3, "0")); // 🔥 conversion FORCÉE
+      .map(x => String(x).padStart(3, "0"));
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
+      attr1: String(attr1).padStart(3, "0"),
+      attr2: String(attr2).padStart(3, "0"),
+      attr3: String(attr3).padStart(3, "0"),
+      attr4: String(attr4).padStart(3, "0"),
       ids
     };
   });
@@ -43,37 +47,39 @@ async function getData() {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  console.log("RECU :", message.content);
+  const content = message.content.trim();
 
-  // accepte /search OU juste 033
-  let args = [];
+  // ✅ UNIQUEMENT /searchpalmon
+  if (!content.startsWith("/searchpalmon")) return;
 
-  if (message.content.startsWith("/search")) {
-    args = message.content.split(" ").slice(1);
-  } else {
-    args = message.content.split(" ");
+  const args = content.split(" ").slice(1);
+
+  if (args.length === 0) {
+    return message.reply("❌ Donne un ID (ex: /searchpalmon 033)");
   }
 
-  // 🔥 normalise les entrées utilisateur aussi
-  args = args.map(x => String(x).padStart(3, "0"));
+  // normalisation
+  const searchIds = args.map(x => String(x).padStart(3, "0"));
 
   const data = await getData();
 
-  console.log("DATA:", data);
-  console.log("ARGS:", args);
-
   const results = data.filter(p =>
-    args.every(id => p.ids.includes(id))
+    searchIds.every(id => p.ids.includes(id))
   );
 
   if (results.length === 0) {
     return message.reply("❌ Aucun résultat");
   }
 
-  let msg = "✅ Résultats :\n";
+  let msg = "✅ Résultats :\n\n";
 
   results.forEach(p => {
-    msg += `- ${p.pseudo} (${p.ids.join(", ")})\n`;
+    msg += `👤 ${p.pseudo}\n`;
+    msg += `➡️ Attr1: ${p.attr1}\n`;
+    msg += `➡️ Attr2: ${p.attr2}\n`;
+    msg += `➡️ Attr3: ${p.attr3}\n`;
+    msg += `➡️ Attr4: ${p.attr4}\n`;
+    msg += `-------------------\n`;
   });
 
   message.reply(msg);
