@@ -164,7 +164,22 @@ client.on("messageCreate", async (message) => {
     msg += `----------------\n`;
   });
 
-  message.reply(msg);
+  const { EmbedBuilder } = require('discord.js');
+
+const embed = new EmbedBuilder()
+  .setTitle("🔎 Résultats Palmon")
+  .setColor(0x00AE86)
+  .setDescription(results.map(p => {
+    return `👤 **${p.pseudo}**
+⚔️ Attributs:
+• ${formatAttr(p.attr1)}
+• ${formatAttr(p.attr2)}
+• ${formatAttr(p.attr3)}
+• ${formatAttr(p.attr4)}
+`;
+  }).join("\n"));
+
+message.reply({ embeds: [embed] });
 });
 
 client.login(TOKEN);
