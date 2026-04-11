@@ -28,9 +28,16 @@ async function getData() {
   const rows = json.table.rows;
 
   return rows.map(r => ({
-    pseudo: r.c[0]?.v || "Inconnu",
-    ids: r.c[5]?.v || ""
-  }));
+  pseudo: r.c[0]?.v || "Inconnu",
+  ids: [
+    r.c[1]?.v,
+    r.c[2]?.v,
+    r.c[3]?.v,
+    r.c[4]?.v
+  ]
+    .filter(Boolean)
+    .map(x => x.toString().padStart(3, "0"))
+}));
 }
 
 client.on("messageCreate", async (message) => {
