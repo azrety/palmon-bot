@@ -23,22 +23,27 @@ async function getData() {
   const json = JSON.parse(match[1]);
   const rows = json.table.rows;
 
-  return rows.map(r => {
-    const attr1 = r.c[1]?.v;
-    const attr2 = r.c[2]?.v;
-    const attr3 = r.c[3]?.v;
-    const attr4 = r.c[4]?.v;
+  return rows.map((r, i) => {
+    const safe = (x) => {
+      if (x === null || x === undefined) return null;
+      return String(x).padStart(3, "0");
+    };
 
-    const ids = [attr1, attr2, attr3, attr4]
-      .filter(x => x !== null && x !== undefined)
-      .map(x => String(x).padStart(3, "0"));
+    const attr1 = safe(r.c[1]?.v);
+    const attr2 = safe(r.c[2]?.v);
+    const attr3 = safe(r.c[3]?.v);
+    const attr4 = safe(r.c[4]?.v);
+
+    const ids = [attr1, attr2, attr3, attr4].filter(Boolean);
+
+    console.log(`ROW ${i}:`, ids); // 🔥 DEBUG
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
-      attr1: String(attr1).padStart(3, "0"),
-      attr2: String(attr2).padStart(3, "0"),
-      attr3: String(attr3).padStart(3, "0"),
-      attr4: String(attr4).padStart(3, "0"),
+      attr1,
+      attr2,
+      attr3,
+      attr4,
       ids
     };
   });
@@ -49,23 +54,26 @@ client.on("messageCreate", async (message) => {
 
   const content = message.content.trim();
 
-  // ✅ UNIQUEMENT /searchpalmon
+  // ✅ UNIQUEMENT cette commande
   if (!content.startsWith("/searchpalmon")) return;
 
   const args = content.split(" ").slice(1);
 
   if (args.length === 0) {
-    return message.reply("❌ Donne un ID (ex: /searchpalmon 033)");
+    return message.reply("❌ Exemple: /searchpalmon 033");
   }
 
-  // normalisation
   const searchIds = args.map(x => String(x).padStart(3, "0"));
+
+  console.log("SEARCH:", searchIds); // DEBUG
 
   const data = await getData();
 
   const results = data.filter(p =>
     searchIds.every(id => p.ids.includes(id))
   );
+
+  console.log("RESULTS:", results); // DEBUG
 
   if (results.length === 0) {
     return message.reply("❌ Aucun résultat");
@@ -75,11 +83,11 @@ client.on("messageCreate", async (message) => {
 
   results.forEach(p => {
     msg += `👤 ${p.pseudo}\n`;
-    msg += `➡️ Attr1: ${p.attr1}\n`;
-    msg += `➡️ Attr2: ${p.attr2}\n`;
-    msg += `➡️ Attr3: ${p.attr3}\n`;
-    msg += `➡️ Attr4: ${p.attr4}\n`;
-    msg += `-------------------\n`;
+    msg += `Attr1: ${p.attr1}\n`;
+    msg += `Attr2: ${p.attr2}\n`;
+    msg += `Attr3: ${p.attr3}\n`;
+    msg += `Attr4: ${p.attr4}\n`;
+    msg += `----------------\n`;
   });
 
   message.reply(msg);
