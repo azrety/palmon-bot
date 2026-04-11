@@ -18,25 +18,28 @@ async function getData() {
   const text = await res.text();
 
   const match = text.match(/setResponse\(([\s\S]*)\);/);
-  if (!match) return [];
+  if (!match) {
+    console.log("❌ Réponse Google invalide");
+    return [];
+  }
 
   const json = JSON.parse(match[1]);
   const rows = json.table.rows;
 
   return rows.map((r, i) => {
-    const safe = (x) => {
+    const format = (x) => {
       if (x === null || x === undefined) return null;
-      return String(x).padStart(3, "0");
+      return String(x).padStart(3, "0"); // 🔥 force 033
     };
 
-    const attr1 = safe(r.c[1]?.v);
-    const attr2 = safe(r.c[2]?.v);
-    const attr3 = safe(r.c[3]?.v);
-    const attr4 = safe(r.c[4]?.v);
+    const attr1 = format(r.c[1]?.v);
+    const attr2 = format(r.c[2]?.v);
+    const attr3 = format(r.c[3]?.v);
+    const attr4 = format(r.c[4]?.v);
 
     const ids = [attr1, attr2, attr3, attr4].filter(Boolean);
 
-    console.log(`ROW ${i}:`, ids); // 🔥 DEBUG
+    console.log(`ROW ${i}:`, ids); // debug
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
@@ -54,26 +57,28 @@ client.on("messageCreate", async (message) => {
 
   const content = message.content.trim();
 
-  // ✅ UNIQUEMENT cette commande
-  if (!content.startsWith("/searchpalmon")) return;
+  // 🔒 UNIQUEMENT cette commande
+  if (!content.startsWith("/searchpalmon ")) return;
 
-  const args = content.split(" ").slice(1);
+  const args = content
+    .replace("/searchpalmon", "")
+    .trim()
+    .split(" ")
+    .map(id => id.padStart(3, "0")); // 🔥 normalisation
 
-  if (args.length === 0) {
-    return message.reply("❌ Exemple: /searchpalmon 033");
-  }
-
-  const searchIds = args.map(x => String(x).padStart(3, "0"));
-
-  console.log("SEARCH:", searchIds); // DEBUG
+  console.log("SEARCH:", args);
 
   const data = await getData();
 
+  console.log("DATA:", data);
+
   const results = data.filter(p =>
-    searchIds.every(id => p.ids.includes(id))
+    args.every(id =>
+      p.ids.map(x => x.padStart(3, "0")).includes(id)
+    )
   );
 
-  console.log("RESULTS:", results); // DEBUG
+  console.log("RESULTS:", results);
 
   if (results.length === 0) {
     return message.reply("❌ Aucun résultat");
