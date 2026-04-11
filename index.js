@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 
 const TOKEN = process.env.TOKEN;
@@ -32,6 +32,22 @@ const format = (cell) => {
   return match ? match[0] : null;
 };
 
+// 🔥 COULEUR PAR RARETÉ
+const getColor = (ids, attrMap) => {
+  for (let id of ids) {
+    const attr = attrMap[id];
+    if (!attr) continue;
+
+    switch (attr.category) {
+      case "S": return 0xFFD700; // jaune
+      case "A": return 0x800080; // violet
+      case "B": return 0x0000FF; // bleu
+      case "C": return 0x808080; // gris
+    }
+  }
+  return 0x00AE86;
+};
+
 // 🔥 GET ATTR MAP
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
@@ -62,8 +78,12 @@ async function getAttributesMap() {
     const fr = r.c[2]?.v || "";
     const en = r.c[3]?.v || "";
     const es = r.c[4]?.v || "";
+    const category = r.c[1]?.v || "C";
 
-    map[id] = `${fr}/${en}/${es}`;
+    map[id] = {
+      name: `${fr}/${en}/${es}`,
+      category
+    };
   });
 
   console.log("✅ ATTR MAP LOADED:", Object.keys(map).length);
@@ -122,8 +142,6 @@ client.on("messageCreate", async (message) => {
   const content = message.content.trim();
   if (!content.startsWith("/searchpalmon ")) return;
 
-  console.log("RAW CONTENT:", content);
-
   const args = content
     .replace("/searchpalmon", "")
     .trim()
@@ -132,7 +150,6 @@ client.on("messageCreate", async (message) => {
 
   console.log("SEARCH:", args);
 
-  // 🔥 LOAD DATA
   const [data, attrMap] = await Promise.all([
     getData(),
     getAttributesMap()
@@ -140,46 +157,40 @@ client.on("messageCreate", async (message) => {
 
   const formatAttr = (id) => {
     if (!id) return "-";
-    return `${id} (${attrMap[id] || "?"})`;
+
+    const attr = attrMap[id];
+    if (!attr) return id;
+
+    return `${id} (${attr.name})`;
   };
 
   const results = data.filter(p =>
     args.every(id => p.ids.includes(id))
   );
 
-  console.log("RESULTS:", results);
-
   if (results.length === 0) {
     return message.reply("❌ Aucun résultat");
   }
 
-  let msg = "✅ Résultats :\n\n";
-
-  results.forEach(p => {
-    msg += `👤 ${p.pseudo}\n`;
-    msg += `Attr1: ${formatAttr(p.attr1)}\n`;
-    msg += `Attr2: ${formatAttr(p.attr2)}\n`;
-    msg += `Attr3: ${formatAttr(p.attr3)}\n`;
-    msg += `Attr4: ${formatAttr(p.attr4)}\n`;
-    msg += `----------------\n`;
-  });
-
-  const { EmbedBuilder } = require('discord.js');
-
-const embed = new EmbedBuilder()
-  .setTitle("🔎 Résultats Palmon")
-  .setColor(0x00AE86)
-  .setDescription(results.map(p => {
-    return `👤 **${p.pseudo}**
+  // 🔥 EMBED
+  const embed = new EmbedBuilder()
+    .setTitle("🔎 Résultats Palmon")
+    .setColor(getColor(results[0].ids, attrMap))
+    .setDescription(
+      results.map(p => {
+        return `👤 **${p.pseudo}**
 ⚔️ Attributs:
 • ${formatAttr(p.attr1)}
 • ${formatAttr(p.attr2)}
 • ${formatAttr(p.attr3)}
 • ${formatAttr(p.attr4)}
 `;
-  }).join("\n"));
+      }).join("\n")
+    )
+    .setFooter({ text: "Palmon Bot 🔍" })
+    .setTimestamp();
 
-message.reply({ embeds: [embed] });
+  message.reply({ embeds: [embed] });
 });
 
 client.login(TOKEN);
