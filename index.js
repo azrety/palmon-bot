@@ -27,13 +27,27 @@ async function getData() {
   const res = await fetch(url);
   const text = await res.text();
 
-  const match = text.match(/setResponse\(([\s\S]*?)\);?/);
-  if (!match) {
-    console.log("❌ Réponse Google invalide");
+  // 🔥 PARSING ULTRA FIABLE (REMPLACE TON MATCH)
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+
+  if (start === -1 || end === -1) {
+    console.log("❌ Impossible de trouver le JSON");
+    console.log(text.substring(0, 300));
     return [];
   }
 
-  const json = JSON.parse(match[1]);
+  let json;
+
+  try {
+    const jsonString = text.substring(start, end + 1);
+    json = JSON.parse(jsonString);
+  } catch (err) {
+    console.log("❌ ERREUR PARSE JSON");
+    console.log(text.substring(0, 300));
+    return [];
+  }
+
   const rows = json.table.rows;
 
   return rows.map((r, i) => {
@@ -42,7 +56,6 @@ async function getData() {
     const attr3 = format(r.c[3]);
     const attr4 = format(r.c[4]);
 
-    // 🔥 on enlève les null + "000"
     const ids = [attr1, attr2, attr3, attr4]
       .filter(x => x && x !== "000");
 
@@ -64,7 +77,6 @@ client.on("messageCreate", async (message) => {
 
   const content = message.content.trim();
 
-  // 🔒 commande unique
   if (!content.startsWith("/searchpalmon ")) return;
 
   console.log("RAW CONTENT:", content);
@@ -79,7 +91,6 @@ client.on("messageCreate", async (message) => {
 
   const data = await getData();
 
-  // 🔥 DEBUG IDS
   data.forEach(p => {
     console.log("IDS:", p.ids);
   });
@@ -106,6 +117,11 @@ client.on("messageCreate", async (message) => {
   });
 
   message.reply(msg);
+});
+
+// 🔥 évite crash
+process.on("unhandledRejection", (err) => {
+  console.error("❌ UNHANDLED:", err);
 });
 
 client.login(TOKEN);
