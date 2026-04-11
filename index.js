@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 
 const TOKEN = process.env.TOKEN;
 const SHEET_ID = process.env.SHEET_ID;
+const GID = "307583676";
 
 const client = new Client({
   intents: [
@@ -23,7 +24,7 @@ const format = (cell) => {
 };
 
 async function getData() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
   const res = await fetch(url);
   const text = await res.text();
 
