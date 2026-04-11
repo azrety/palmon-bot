@@ -17,9 +17,10 @@ async function getData() {
   const res = await fetch(url);
   const text = await res.text();
 
-  console.log("RAW DATA:", text); // 👈 IMPORTANT
+  // Extraction plus safe
+  const jsonString = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1];
+  const json = JSON.parse(jsonString);
 
-  const json = JSON.parse(text.substring(47).slice(0, -2));
   const rows = json.table.rows;
 
   return rows.map(r => ({
