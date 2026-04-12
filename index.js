@@ -181,16 +181,14 @@ client.on("interactionCreate", async (interaction) => {
     ]);
 
     const formatAttr = (id) => {
-      if (!id) return "—";
+  if (!id) return "-";
 
-    const attr = attrMap[id];
-      if (!attr) return `❔ ${id}`;
+  const attr = attrMap[id];
+    if (!attr) return `**${id}**`;
 
-      const emoji = getEmoji(attr.category);
+    const emoji = getEmoji(attr.category);
 
-      const [fr, en, es] = attr.name.split("/");
-      return `${emoji} **${id}** [${attr.category}]
-      ${fr} / ${en} / ${es}`;
+    return `${emoji} **${id}** [${attr.category}] (${attr.name})`;
   };
 
     const results = data.filter(p =>
@@ -202,17 +200,21 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`🔎 Search for : ${args.join(" ")}`)
-      .setColor(getColor(results[0].ids, attrMap))
-      .setDescription(
-        results.map(p => `👤 **${p.pseudo}**
+  .setTitle(`🔎 Search for : ${args.join(" ")}`)
+  .setColor(getColor(results[0].ids, attrMap))
+  .setDescription(
+    results.map(p => {
+      return `👤 **${p.pseudo}**
 ⚔️ Attributs:
 • ${formatAttr(p.attr1)}
 • ${formatAttr(p.attr2)}
 • ${formatAttr(p.attr3)}
 • ${formatAttr(p.attr4)}
-`).join("\n")
-      );
+`;
+    }).join("\n")
+  )
+  .setFooter({ text: "Palmon Bot 🔍" })
+  .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
   }
