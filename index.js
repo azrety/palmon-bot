@@ -37,9 +37,9 @@ async function registerCommands() {
   try {
     console.log("🚀 Enregistrement des slash commands...");
     await rest.put(
-  Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
-  { body: [] }
-);
+      Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
+      { body: commands }
+    );
     console.log("✅ Slash command prête !");
   } catch (err) {
     console.error("❌ Erreur register:", err);
