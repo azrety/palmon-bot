@@ -37,9 +37,9 @@ async function registerCommands() {
   try {
     console.log("🚀 Enregistrement des slash commands...");
     await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
-      { body: commands }
-    );
+  Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
+  { body: [] }
+);
     console.log("✅ Slash command prête !");
   } catch (err) {
     console.error("❌ Erreur register:", err);
@@ -196,7 +196,7 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle("🔎 Résultats Palmon")
+      .setTitle(`🔎 Résultats pour : ${args.join(", ")}`)
       .setColor(getColor(results[0].ids, attrMap))
       .setDescription(
         results.map(p => `👤 **${p.pseudo}**
