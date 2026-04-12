@@ -114,10 +114,11 @@ async function getAttributesMap() {
     const fr = r.c[2]?.v || "";
     const en = r.c[3]?.v || "";
     const es = r.c[4]?.v || "";
+    const de = r.c[5]?.v || "";
     const category = r.c[1]?.v || "C";
 
     map[id] = {
-      name: `${fr}/${en}/${es}`,
+      name: `${fr}/${en}/${es}/${de}`,
       category
     };
   });
