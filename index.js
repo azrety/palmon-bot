@@ -181,11 +181,17 @@ client.on("interactionCreate", async (interaction) => {
     ]);
 
     const formatAttr = (id) => {
-      if (!id) return "-";
-      const attr = attrMap[id];
-      if (!attr) return id;
-      return `${getEmoji(attr.category)} ${id} [${attr.category}] (${attr.name})`;
-    };
+      if (!id) return "—";
+
+    const attr = attrMap[id];
+      if (!attr) return `❔ ${id}`;
+
+      const emoji = getEmoji(attr.category);
+
+      const [fr, en, es] = attr.name.split("/");
+      return `${emoji} **${id}** [${attr.category}]
+      ${fr} / ${en} / ${es}`;
+  };
 
     const results = data.filter(p =>
       args.every(id => p.ids.includes(id))
@@ -196,7 +202,7 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`🔎 Résultats pour : ${args.join(", ")}`)
+      .setTitle(`🔎 Search for : ${args.join(" ")}`)
       .setColor(getColor(results[0].ids, attrMap))
       .setDescription(
         results.map(p => `👤 **${p.pseudo}**
