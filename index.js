@@ -1,7 +1,8 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 
 const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
 
 // 🔥 GID
@@ -15,6 +16,35 @@ const client = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
+
+// 🔥 REGISTER SLASH COMMAND AUTO
+async function registerCommands() {
+    console.log("CLIENT_ID:", CLIENT_ID);
+    console.log("TOKEN:", TOKEN ? "OK" : "MISSING");
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('searchpalmon')
+      .setDescription('Recherche un Palmon par ID')
+      .addStringOption(option =>
+        option.setName('id')
+          .setDescription('Ex: 033 ou 033 027')
+          .setRequired(true)
+      )
+  ].map(cmd => cmd.toJSON());
+
+  const rest = new REST({ version: '10' }).setToken(TOKEN);
+
+  try {
+    console.log("🚀 Enregistrement des slash commands...");
+    await rest.put(
+      Routes.applicationCommands(CLIENT_ID, "1491506781245931563"),
+      { body: commands }
+    );
+    console.log("✅ Slash command prête !");
+  } catch (err) {
+    console.error("❌ Erreur register:", err);
+  }
+}
 
 // 🔥 évite crash
 process.on("unhandledRejection", (err) => {
@@ -39,10 +69,10 @@ const getColor = (ids, attrMap) => {
     if (!attr) continue;
 
     switch (attr.category) {
-      case "S": return 0xFFD700; // jaune
-      case "A": return 0x800080; // violet
-      case "B": return 0x0000FF; // bleu
-      case "C": return 0x808080; // gris
+      case "S": return 0xFFD700;
+      case "A": return 0x800080;
+      case "B": return 0x0000FF;
+      case "C": return 0x808080;
     }
   }
   return 0x00AE86;
@@ -67,16 +97,12 @@ async function getAttributesMap() {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
 
-  if (start === -1 || end === -1) {
-    console.log("❌ ATTR SHEET ERROR");
-    return {};
-  }
+  if (start === -1 || end === -1) return {};
 
   let json;
   try {
     json = JSON.parse(text.substring(start, end + 1));
   } catch {
-    console.log("❌ ATTR JSON PARSE ERROR");
     return {};
   }
 
@@ -96,7 +122,6 @@ async function getAttributesMap() {
     };
   });
 
-  console.log("✅ ATTR MAP LOADED:", Object.keys(map).length);
   return map;
 }
 
@@ -109,22 +134,18 @@ async function getData() {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
 
-  if (start === -1 || end === -1) {
-    console.log("❌ PLAYER SHEET ERROR");
-    return [];
-  }
+  if (start === -1 || end === -1) return [];
 
   let json;
   try {
     json = JSON.parse(text.substring(start, end + 1));
   } catch {
-    console.log("❌ PLAYER JSON PARSE ERROR");
     return [];
   }
 
   const rows = json.table.rows;
 
-  return rows.map((r, i) => {
+  return rows.map(r => {
     const attr1 = format(r.c[1]);
     const attr2 = format(r.c[2]);
     const attr3 = format(r.c[3]);
@@ -132,8 +153,6 @@ async function getData() {
 
     const ids = [attr1, attr2, attr3, attr4]
       .filter(x => x && x !== "000");
-
-    console.log(`ROW ${i}:`, ids);
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
@@ -146,63 +165,57 @@ async function getData() {
   });
 }
 
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+// 🔥 SLASH COMMAND
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
 
-  const content = message.content.trim();
-  if (!content.startsWith("/searchpalmon ")) return;
+  if (interaction.commandName === "searchpalmon") {
 
-  const args = content
-    .replace("/searchpalmon", "")
-    .trim()
-    .split(/\s+/)
-    .map(id => id.padStart(3, "0"));
+    const input = interaction.options.getString("id");
 
-  console.log("SEARCH:", args);
+    const args = input.trim().split(/\s+/).map(id => id.padStart(3, "0"));
 
-  const [data, attrMap] = await Promise.all([
-    getData(),
-    getAttributesMap()
-  ]);
+    const [data, attrMap] = await Promise.all([
+      getData(),
+      getAttributesMap()
+    ]);
 
-  const formatAttr = (id) => {
-  if (!id) return "-";
+    const formatAttr = (id) => {
+      if (!id) return "-";
+      const attr = attrMap[id];
+      if (!attr) return id;
+      return `${getEmoji(attr.category)} ${id} [${attr.category}] (${attr.name})`;
+    };
 
-  const attr = attrMap[id];
-  if (!attr) return id;
+    const results = data.filter(p =>
+      args.every(id => p.ids.includes(id))
+    );
 
-  const emoji = getEmoji(attr.category);
+    if (results.length === 0) {
+      return interaction.reply("❌ Aucun résultat");
+    }
 
-  return `${emoji} ${id} [${attr.category}] (${attr.name})`;
-  };
+    const embed = new EmbedBuilder()
+      .setTitle("🔎 Résultats Palmon")
+      .setColor(getColor(results[0].ids, attrMap))
+      .setDescription(
+        results.map(p => `👤 **${p.pseudo}**
+⚔️ Attributs:
+• ${formatAttr(p.attr1)}
+• ${formatAttr(p.attr2)}
+• ${formatAttr(p.attr3)}
+• ${formatAttr(p.attr4)}
+`).join("\n")
+      );
 
-  const results = data.filter(p =>
-    args.every(id => p.ids.includes(id))
-  );
-
-  if (results.length === 0) {
-    return message.reply("❌ Aucun résultat");
+    await interaction.reply({ embeds: [embed] });
   }
+});
 
-  // 🔥 EMBED
-  const embed = new EmbedBuilder()
-    .setTitle("🔎 Résultats Palmon")
-    .setColor(getColor(results[0].ids, attrMap))
-    .setDescription(
-      results.map(p => {
-        return `👤 **${p.pseudo}**
-  ⚔️ Attributs:
-  • ${formatAttr(p.attr1)}
-  • ${formatAttr(p.attr2)}
-  • ${formatAttr(p.attr3)}
-  • ${formatAttr(p.attr4)}
-`;
-      }).join("\n")
-    )
-    .setFooter({ text: "Palmon Bot 🔍" })
-    .setTimestamp();
-
-  message.reply({ embeds: [embed] });
+// 🔥 READY
+client.once("ready", async () => {
+  console.log(`✅ Connecté en tant que ${client.user.tag}`);
+  await registerCommands();
 });
 
 client.login(TOKEN);
