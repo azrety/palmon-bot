@@ -53,7 +53,7 @@ process.on("unhandledRejection", (err) => {
   console.error("❌ UNHANDLED:", err);
 });
 
-// 🔥 multi ID
+// 🔥 utils
 const formatAll = (cell) => {
   if (!cell) return [];
   const value = cell.v ?? cell.f;
@@ -62,12 +62,7 @@ const formatAll = (cell) => {
 };
 
 const getEmoji = (category) => {
-  return {
-    S: "🟡",
-    A: "🟣",
-    B: "🔵",
-    C: "⚪"
-  }[category] || "❔";
+  return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
 };
 
 const getColor = (ids, attrMap) => {
@@ -121,7 +116,27 @@ async function getData() {
   }));
 }
 
-// 🔥 COMMAND
+// 🔥 LOGIQUE COMMUNE (IMPORTANT)
+async function runSearch(args) {
+  const [data, attrMap] = await Promise.all([
+    getData(),
+    getAttributesMap()
+  ]);
+
+  const formatAttr = (id) => {
+    const attr = attrMap[id];
+    if (!attr) return `**${id}**`;
+    return `${getEmoji(attr.category)} **${id}** [${attr.category}] (${attr.name})`;
+  };
+
+  const results = data.filter(p =>
+    args.every(id => p.ids.includes(id))
+  );
+
+  return { results, attrMap, formatAttr };
+}
+
+// 🔥 SLASH COMMAND
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -134,26 +149,12 @@ client.on("interactionCreate", async (interaction) => {
       .split(/\s+/)
       .map(id => id.padStart(3, "0"));
 
-    const [data, attrMap] = await Promise.all([
-      getData(),
-      getAttributesMap()
-    ]);
-
-    const formatAttr = (id) => {
-      const attr = attrMap[id];
-      if (!attr) return `**${id}**`;
-      return `${getEmoji(attr.category)} **${id}** [${attr.category}] (${attr.name})`;
-    };
-
-    const results = data.filter(p =>
-      args.every(id => p.ids.includes(id))
-    );
+    const { results, attrMap, formatAttr } = await runSearch(args);
 
     if (!results.length) {
       return interaction.editReply("❌ Aucun résultat");
     }
 
-    // 🔥 PAGINATION
     const pageSize = 5;
     let page = 0;
     const totalPages = Math.ceil(results.length / pageSize);
@@ -175,17 +176,8 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
     const getButtons = () =>
       new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("prev")
-          .setLabel("⬅️")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0),
-
-        new ButtonBuilder()
-          .setCustomId("next")
-          .setLabel("➡️")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === totalPages - 1)
+        new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
+        new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === totalPages - 1)
       );
 
     const msg = await interaction.editReply({
@@ -207,10 +199,38 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
         components: [getButtons()]
       });
     });
+  }
+});
 
-    collector.on("end", async () => {
-      try { await msg.edit({ components: [] }); } catch {}
-    });
+// 🔥 MESSAGE TEXTE (COMME AVANT)
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  if (message.content.startsWith("/searchpalmon ")) {
+
+    const args = message.content
+      .replace("/searchpalmon", "")
+      .trim()
+      .split(/\s+/)
+      .map(id => id.padStart(3, "0"));
+
+    const { results, attrMap, formatAttr } = await runSearch(args);
+
+    if (!results.length) {
+      return message.reply("❌ Aucun résultat");
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+      .setColor(getColor(results[0].ids, attrMap))
+      .setDescription(
+        results.slice(0, 5).map(p =>
+          `👤 **${p.pseudo}**
+${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
+        ).join("\n\n")
+      );
+
+    message.reply({ embeds: [embed] });
   }
 });
 
