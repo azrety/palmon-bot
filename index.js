@@ -5,7 +5,7 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
 
-// 🔥 GID
+// GID
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
 
@@ -17,10 +17,8 @@ const client = new Client({
   ]
 });
 
-// 🔥 REGISTER SLASH COMMAND AUTO
+// 🔥 REGISTER SLASH COMMAND
 async function registerCommands() {
-    console.log("CLIENT_ID:", CLIENT_ID);
-    console.log("TOKEN:", TOKEN ? "OK" : "MISSING");
   const commands = [
     new SlashCommandBuilder()
       .setName('searchpalmon')
@@ -46,23 +44,23 @@ async function registerCommands() {
   }
 }
 
-// 🔥 évite crash
+// 🔥 ANTI CRASH
 process.on("unhandledRejection", (err) => {
   console.error("❌ UNHANDLED:", err);
 });
 
-// 🔥 extrait seulement les 3 chiffres
-const format = (cell) => {
-  if (!cell) return null;
+// 🔥 NOUVEAU FORMAT (multi IDs)
+const formatAll = (cell) => {
+  if (!cell) return [];
 
   const value = cell.v ?? cell.f;
-  if (!value) return null;
+  if (!value) return [];
 
-  const match = String(value).match(/\d{3}/);
-  return match ? match[0] : null;
+  const matches = String(value).match(/\d{3}/g);
+  return matches || [];
 };
 
-// 🔥 COULEUR PAR RARETÉ
+// 🔥 COULEUR
 const getColor = (ids, attrMap) => {
   for (let id of ids) {
     const attr = attrMap[id];
@@ -88,7 +86,7 @@ const getEmoji = (category) => {
   }
 };
 
-// 🔥 GET ATTR MAP
+// 🔥 ATTR MAP
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
   const res = await fetch(url);
@@ -126,7 +124,7 @@ async function getAttributesMap() {
   return map;
 }
 
-// 🔥 GET PLAYERS
+// 🔥 PLAYERS
 async function getData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_PLAYERS}`;
   const res = await fetch(url);
@@ -147,33 +145,27 @@ async function getData() {
   const rows = json.table.rows;
 
   return rows.map(r => {
-    const attr1 = format(r.c[1]);
-    const attr2 = format(r.c[2]);
-    const attr3 = format(r.c[3]);
-    const attr4 = format(r.c[4]);
-
-    const ids = [attr1, attr2, attr3, attr4]
-      .filter(x => x && x !== "000");
+    const ids = [
+      ...formatAll(r.c[1]),
+      ...formatAll(r.c[2]),
+      ...formatAll(r.c[3]),
+      ...formatAll(r.c[4])
+    ].filter(x => x && x !== "000");
 
     return {
       pseudo: r.c[0]?.v || "Inconnu",
-      attr1,
-      attr2,
-      attr3,
-      attr4,
       ids
     };
   });
 }
 
-// 🔥 SLASH COMMAND
+// 🔥 COMMAND
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "searchpalmon") {
 
     const input = interaction.options.getString("id");
-
     const args = input.trim().split(/\s+/).map(id => id.padStart(3, "0"));
 
     const [data, attrMap] = await Promise.all([
@@ -182,15 +174,14 @@ client.on("interactionCreate", async (interaction) => {
     ]);
 
     const formatAttr = (id) => {
-  if (!id) return "-";
+      if (!id) return "-";
 
-  const attr = attrMap[id];
-    if (!attr) return `**${id}**`;
+      const attr = attrMap[id];
+      if (!attr) return `**${id}**`;
 
-    const emoji = getEmoji(attr.category);
-
-    return `${emoji} **${id}** [${attr.category}] (${attr.name})`;
-  };
+      const emoji = getEmoji(attr.category);
+      return `${emoji} **${id}** [${attr.category}] (${attr.name})`;
+    };
 
     const results = data.filter(p =>
       args.every(id => p.ids.includes(id))
@@ -201,27 +192,24 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     const embed = new EmbedBuilder()
-  .setTitle(`🔎 Search for : ${args.join(" ")}`)
-  .setColor(getColor(results[0].ids, attrMap))
-  .setDescription(
-    results.map(p => {
-      return `👤 **${p.pseudo}**
+      .setTitle(`🔎 Search for : ${args.join(" ")}`)
+      .setColor(getColor(results[0].ids, attrMap))
+      .setDescription(
+        results.map(p => {
+          return `👤 **${p.pseudo}**
 ⚔️ Attributs:
-• ${formatAttr(p.attr1)}
-• ${formatAttr(p.attr2)}
-• ${formatAttr(p.attr3)}
-• ${formatAttr(p.attr4)}
+${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}
 `;
-    }).join("\n")
-  )
-  .setFooter({ text: "Palmon Bot 🔍" })
-  .setTimestamp();
+        }).join("\n")
+      )
+      .setFooter({ text: "Palmon Bot 🔍" })
+      .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
   }
 });
 
-// 🔥 READY
+// READY
 client.once("ready", async () => {
   console.log(`✅ Connecté en tant que ${client.user.tag}`);
   await registerCommands();
