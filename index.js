@@ -220,17 +220,63 @@ client.on("messageCreate", async (message) => {
       return message.reply("❌ Aucun résultat");
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
-      .setColor(getColor(results[0].ids, attrMap))
-      .setDescription(
-        results.slice(0, 5).map(p =>
-          `👤 **${p.pseudo}**
+    const pageSize = 5;
+    let page = 0;
+    const totalPages = Math.ceil(results.length / pageSize);
+
+    const generateEmbed = () => {
+      const slice = results.slice(page * pageSize, (page + 1) * pageSize);
+
+      return new EmbedBuilder()
+        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+        .setColor(getColor(slice[0].ids, attrMap))
+        .setDescription(
+          slice.map(p =>
+            `👤 **${p.pseudo}**
 ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
-        ).join("\n\n")
+          ).join("\n\n")
+        )
+        .setFooter({ text: `Page ${page + 1}/${totalPages}` });
+    };
+
+    const getButtons = () =>
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("prev")
+          .setLabel("⬅️")
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page === 0),
+
+        new ButtonBuilder()
+          .setCustomId("next")
+          .setLabel("➡️")
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page === totalPages - 1)
       );
 
-    message.reply({ embeds: [embed] });
+    const msg = await message.reply({
+      embeds: [generateEmbed()],
+      components: [getButtons()]
+    });
+
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== message.author.id)
+        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
+
+      if (i.customId === "prev") page--;
+      if (i.customId === "next") page++;
+
+      await i.update({
+        embeds: [generateEmbed()],
+        components: [getButtons()]
+      });
+    });
+
+    collector.on("end", async () => {
+      try { await msg.edit({ components: [] }); } catch {}
+    });
   }
 });
 
