@@ -1,11 +1,21 @@
-const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { 
+  Client, 
+  GatewayIntentBits, 
+  EmbedBuilder, 
+  REST, 
+  Routes, 
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
+
 const fetch = require('node-fetch');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
 
-// GID
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
 
@@ -17,7 +27,6 @@ const client = new Client({
   ]
 });
 
-// 🔥 REGISTER SLASH COMMAND
 async function registerCommands() {
   const commands = [
     new SlashCommandBuilder()
@@ -32,92 +41,61 @@ async function registerCommands() {
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-  try {
-    console.log("🚀 Enregistrement des slash commands...");
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
-      { body: commands }
-    );
-    console.log("✅ Slash command prête !");
-  } catch (err) {
-    console.error("❌ Erreur register:", err);
-  }
+  await rest.put(
+    Routes.applicationGuildCommands(CLIENT_ID, "1491506781245931563"),
+    { body: commands }
+  );
+
+  console.log("✅ Slash command prête !");
 }
 
-// 🔥 ANTI CRASH
 process.on("unhandledRejection", (err) => {
   console.error("❌ UNHANDLED:", err);
 });
 
-// 🔥 NOUVEAU FORMAT (multi IDs)
+// 🔥 multi ID
 const formatAll = (cell) => {
   if (!cell) return [];
-
   const value = cell.v ?? cell.f;
   if (!value) return [];
-
-  const matches = String(value).match(/\d{3}/g);
-  return matches || [];
+  return String(value).match(/\d{3}/g) || [];
 };
 
-// 🔥 COULEUR
+const getEmoji = (category) => {
+  return {
+    S: "🟡",
+    A: "🟣",
+    B: "🔵",
+    C: "⚪"
+  }[category] || "❔";
+};
+
 const getColor = (ids, attrMap) => {
   for (let id of ids) {
-    const attr = attrMap[id];
-    if (!attr) continue;
-
-    switch (attr.category) {
-      case "S": return 0xFFD700;
-      case "A": return 0x800080;
-      case "B": return 0x0000FF;
-      case "C": return 0x808080;
-    }
+    const c = attrMap[id]?.category;
+    if (c === "S") return 0xFFD700;
+    if (c === "A") return 0x800080;
+    if (c === "B") return 0x0000FF;
+    if (c === "C") return 0x808080;
   }
   return 0x00AE86;
 };
 
-const getEmoji = (category) => {
-  switch (category) {
-    case "S": return "🟡";
-    case "A": return "🟣";
-    case "B": return "🔵";
-    case "C": return "⚪";
-    default: return "❔";
-  }
-};
-
-// 🔥 ATTR MAP
+// 🔥 ATTR
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
   const res = await fetch(url);
   const text = await res.text();
 
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
+  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
 
-  if (start === -1 || end === -1) return {};
-
-  let json;
-  try {
-    json = JSON.parse(text.substring(start, end + 1));
-  } catch {
-    return {};
-  }
-
-  const rows = json.table.rows;
   const map = {};
-
-  rows.forEach(r => {
+  json.table.rows.forEach(r => {
     const id = String(r.c[0]?.v).padStart(3, "0");
-    const fr = r.c[2]?.v || "";
-    const en = r.c[3]?.v || "";
-    const es = r.c[4]?.v || "";
-    const de = r.c[5]?.v || "";
-    const category = r.c[1]?.v || "C";
 
     map[id] = {
-      name: `${fr}/${en}/${es}/${de}`,
-      category
+      name: `${r.c[2]?.v || ""}/${r.c[3]?.v || ""}/${r.c[4]?.v || ""}/${r.c[5]?.v || ""}`,
+      category: r.c[1]?.v || "C"
     };
   });
 
@@ -130,33 +108,17 @@ async function getData() {
   const res = await fetch(url);
   const text = await res.text();
 
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
+  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
 
-  if (start === -1 || end === -1) return [];
-
-  let json;
-  try {
-    json = JSON.parse(text.substring(start, end + 1));
-  } catch {
-    return [];
-  }
-
-  const rows = json.table.rows;
-
-  return rows.map(r => {
-    const ids = [
+  return json.table.rows.map(r => ({
+    pseudo: r.c[0]?.v || "Inconnu",
+    ids: [
       ...formatAll(r.c[1]),
       ...formatAll(r.c[2]),
       ...formatAll(r.c[3]),
       ...formatAll(r.c[4])
-    ].filter(x => x && x !== "000");
-
-    return {
-      pseudo: r.c[0]?.v || "Inconnu",
-      ids
-    };
-  });
+    ]
+  }));
 }
 
 // 🔥 COMMAND
@@ -165,8 +127,12 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.commandName === "searchpalmon") {
 
-    const input = interaction.options.getString("id");
-    const args = input.trim().split(/\s+/).map(id => id.padStart(3, "0"));
+    await interaction.deferReply();
+
+    const args = interaction.options.getString("id")
+      .trim()
+      .split(/\s+/)
+      .map(id => id.padStart(3, "0"));
 
     const [data, attrMap] = await Promise.all([
       getData(),
@@ -174,44 +140,83 @@ client.on("interactionCreate", async (interaction) => {
     ]);
 
     const formatAttr = (id) => {
-      if (!id) return "-";
-
       const attr = attrMap[id];
       if (!attr) return `**${id}**`;
-
-      const emoji = getEmoji(attr.category);
-      return `${emoji} **${id}** [${attr.category}] (${attr.name})`;
+      return `${getEmoji(attr.category)} **${id}** [${attr.category}] (${attr.name})`;
     };
 
     const results = data.filter(p =>
       args.every(id => p.ids.includes(id))
     );
 
-    if (results.length === 0) {
-      return interaction.reply("❌ Aucun résultat");
+    if (!results.length) {
+      return interaction.editReply("❌ Aucun résultat");
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🔎 Search for : ${args.join(" ")}`)
-      .setColor(getColor(results[0].ids, attrMap))
-      .setDescription(
-        results.map(p => {
-          return `👤 **${p.pseudo}**
-⚔️ Attributs:
-${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}
-`;
-        }).join("\n")
-      )
-      .setFooter({ text: "Palmon Bot 🔍" })
-      .setTimestamp();
+    // 🔥 PAGINATION
+    const pageSize = 5;
+    let page = 0;
+    const totalPages = Math.ceil(results.length / pageSize);
 
-    await interaction.reply({ embeds: [embed] });
+    const generateEmbed = () => {
+      const slice = results.slice(page * pageSize, (page + 1) * pageSize);
+
+      return new EmbedBuilder()
+        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+        .setColor(getColor(slice[0].ids, attrMap))
+        .setDescription(
+          slice.map(p =>
+            `👤 **${p.pseudo}**
+${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
+          ).join("\n\n")
+        )
+        .setFooter({ text: `Page ${page + 1}/${totalPages}` });
+    };
+
+    const getButtons = () =>
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("prev")
+          .setLabel("⬅️")
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page === 0),
+
+        new ButtonBuilder()
+          .setCustomId("next")
+          .setLabel("➡️")
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page === totalPages - 1)
+      );
+
+    const msg = await interaction.editReply({
+      embeds: [generateEmbed()],
+      components: [getButtons()]
+    });
+
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== interaction.user.id)
+        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
+
+      if (i.customId === "prev") page--;
+      if (i.customId === "next") page++;
+
+      await i.update({
+        embeds: [generateEmbed()],
+        components: [getButtons()]
+      });
+    });
+
+    collector.on("end", async () => {
+      try { await msg.edit({ components: [] }); } catch {}
+    });
   }
 });
 
 // READY
 client.once("ready", async () => {
-  console.log(`✅ Connecté en tant que ${client.user.tag}`);
+  console.log(`✅ ${client.user.tag}`);
   await registerCommands();
 });
 
