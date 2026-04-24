@@ -36,7 +36,24 @@ async function registerCommands() {
         option.setName('id')
           .setDescription('Ex: 033 ou 033 027')
           .setRequired(true)
-      )
+      ),
+
+    // 📅 EVENT AJOUTÉ ICI
+    new SlashCommandBuilder()
+      .setName('event')
+      .setDescription('Créer un événement')
+      .addStringOption(option =>
+        option.setName('nom')
+          .setDescription('Nom de l’événement')
+          .setRequired(true))
+      .addStringOption(option =>
+        option.setName('heure')
+          .setDescription('Format HH:MM')
+          .setRequired(true))
+      .addIntegerOption(option =>
+        option.setName('rappel')
+          .setDescription('Rappel en minutes (optionnel)')
+          .setRequired(false))
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -116,7 +133,7 @@ async function getData() {
   }));
 }
 
-// 🔥 LOGIQUE COMMUNE (IMPORTANT)
+// 🔥 LOGIQUE COMMUNE
 async function runSearch(args) {
   const [data, attrMap] = await Promise.all([
     getData(),
@@ -136,10 +153,11 @@ async function runSearch(args) {
   return { results, attrMap, formatAttr };
 }
 
-// 🔥 SLASH COMMAND
+// 🔥 INTERACTIONS
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
+  // 🔎 SEARCH
   if (interaction.commandName === "searchpalmon") {
 
     await interaction.deferReply();
@@ -200,83 +218,52 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       });
     });
   }
-});
 
-// 🔥 MESSAGE TEXTE (COMME AVANT)
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+  // 📅 EVENT AJOUTÉ ICI
+  if (interaction.commandName === "event") {
 
-  if (message.content.startsWith("/searchpalmon ")) {
+    const nom = interaction.options.getString("nom");
+    const heure = interaction.options.getString("heure");
+    const rappel = interaction.options.getInteger("rappel");
 
-    const args = message.content
-      .replace("/searchpalmon", "")
-      .trim()
-      .split(/\s+/)
-      .map(id => id.padStart(3, "0"));
+    const [h, m] = heure.split(':');
 
-    const { results, attrMap, formatAttr } = await runSearch(args);
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
 
-    if (!results.length) {
-      return message.reply("❌ Aucun résultat");
+    if (target < new Date()) {
+      target.setDate(target.getDate() + 1);
     }
 
-    const pageSize = 5;
-    let page = 0;
-    const totalPages = Math.ceil(results.length / pageSize);
+    const timestamp = Math.floor(target.getTime() / 1000);
 
-    const generateEmbed = () => {
-      const slice = results.slice(page * pageSize, (page + 1) * pageSize);
+    await interaction.reply(
+      `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
+    );
 
-      return new EmbedBuilder()
-        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
-        .setColor(getColor(slice[0].ids, attrMap))
-        .setDescription(
-          slice.map(p =>
-            `👤 **${p.pseudo}**
-${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
-          ).join("\n\n")
-        )
-        .setFooter({ text: `Page ${page + 1}/${totalPages}` });
-    };
+    // 🔔 rappel
+    if (rappel) {
+      const delay = target.getTime() - (rappel * 60000) - Date.now();
 
-    const getButtons = () =>
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("prev")
-          .setLabel("⬅️")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0),
+      if (delay > 0) {
+        setTimeout(() => {
+          interaction.channel.send(
+            `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
+          );
+        }, delay);
+      }
+    }
 
-        new ButtonBuilder()
-          .setCustomId("next")
-          .setLabel("➡️")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === totalPages - 1)
-      );
+    // ⚔️ message final
+    const finalDelay = target.getTime() - Date.now();
 
-    const msg = await message.reply({
-      embeds: [generateEmbed()],
-      components: [getButtons()]
-    });
-
-    const collector = msg.createMessageComponentCollector({ time: 60000 });
-
-    collector.on("collect", async (i) => {
-      if (i.user.id !== message.author.id)
-        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
-
-      if (i.customId === "prev") page--;
-      if (i.customId === "next") page++;
-
-      await i.update({
-        embeds: [generateEmbed()],
-        components: [getButtons()]
-      });
-    });
-
-    collector.on("end", async () => {
-      try { await msg.edit({ components: [] }); } catch {}
-    });
+    if (finalDelay > 0) {
+      setTimeout(() => {
+        interaction.channel.send(
+          `@everyone ⚔️ **${nom}** MAINTENANT !`
+        );
+      }, finalDelay);
+    }
   }
 });
 
