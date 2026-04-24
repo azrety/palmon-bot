@@ -11,6 +11,7 @@ const {
 } = require('discord.js');
 
 const fetch = require('node-fetch');
+const { DateTime } = require('luxon'); // 🔥 AJOUT
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -221,7 +222,7 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     });
   }
 
-  // 📅 EVENT (CORRIGÉ + SAFE)
+  // 📅 EVENT FIX LUXON (PLUS DE +2H)
   if (interaction.commandName === "event") {
 
     const nom = interaction.options.getString("nom");
@@ -234,14 +235,21 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       return interaction.reply("❌ Format invalide (HH:MM)");
     }
 
-    const target = new Date();
-    target.setHours(h, m, 0, 0);
+    // 🌍 FIX TIMEZONE PROPRE
+    const now = DateTime.now().setZone("Europe/Paris");
 
-    if (target < new Date()) {
-      target.setDate(target.getDate() + 1);
+    let target = now.set({
+      hour: h,
+      minute: m,
+      second: 0,
+      millisecond: 0
+    });
+
+    if (target < now) {
+      target = target.plus({ days: 1 });
     }
 
-    const timestamp = Math.floor(target.getTime() / 1000);
+    const timestamp = Math.floor(target.toSeconds());
 
     await interaction.reply(
       `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
@@ -249,7 +257,7 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
     // 🔔 rappel
     if (rappel) {
-      const delay = target.getTime() - Date.now() - (rappel * 60000);
+      const delay = target.toMillis() - Date.now() - (rappel * 60000);
 
       if (delay > 0) {
         setTimeout(() => {
@@ -260,8 +268,8 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       }
     }
 
-    // ⚔️ message final
-    const finalDelay = target.getTime() - Date.now();
+    // ⚔️ final
+    const finalDelay = target.toMillis() - Date.now();
 
     if (finalDelay > 0) {
       setTimeout(() => {
