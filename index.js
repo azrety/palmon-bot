@@ -38,25 +38,24 @@ async function registerCommands() {
           .setRequired(true)
       ),
 
-    // 📅 EVENT AJOUTÉ ICI
     new SlashCommandBuilder()
-    .setName('event')
-    .setDescription('Créer un événement')
-    .addStringOption(option =>
-      option.setName('nom')
-        .setDescription('Nom de l’événement')
-        .setRequired(true)
-    )
-    .addStringOption(option =>
-      option.setName('heure')
-        .setDescription('Format HH:MM')
-        .setRequired(true)
-    )
-    .addIntegerOption(option =>
-      option.setName('rappel')
-        .setDescription('Minutes avant rappel (optionnel)')
-        .setRequired(false)
-    )
+      .setName('event')
+      .setDescription('Créer un événement')
+      .addStringOption(option =>
+        option.setName('nom')
+          .setDescription('Nom de l’événement')
+          .setRequired(true)
+      )
+      .addStringOption(option =>
+        option.setName('heure')
+          .setDescription('Format HH:MM')
+          .setRequired(true)
+      )
+      .addIntegerOption(option =>
+        option.setName('rappel')
+          .setDescription('Minutes avant rappel (optionnel)')
+          .setRequired(false)
+      )
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -222,55 +221,44 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     });
   }
 
-  // 📅 EVENT AJOUTÉ ICI
-if (interaction.commandName === "event") {
+  // 📅 EVENT (CORRIGÉ + SAFE)
+  if (interaction.commandName === "event") {
 
-  const nom = interaction.options.getString("nom");
-  const heure = interaction.options.getString("heure");
-  const rappel = interaction.options.getInteger("rappel");
+    const nom = interaction.options.getString("nom");
+    const heure = interaction.options.getString("heure");
+    const rappel = interaction.options.getInteger("rappel");
 
-  const [h, m] = heure.split(':');
+    const [h, m] = heure.split(':').map(Number);
 
-  const target = new Date();
-  target.setHours(h, m, 0, 0);
-
-  // si heure déjà passée → demain
-  if (target < new Date()) {
-    target.setDate(target.getDate() + 1);
-  }
-
-  // 🔥 timestamp Discord (IMPORTANT)
-  const timestamp = Math.floor(target.getTime() / 1000);
-
-  // 📩 message principal
-  await interaction.reply(
-    `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
-  );
-
-  // 🔔 rappel optionnel
-  if (rappel) {
-    const delay = target.getTime() - Date.now() - (rappel * 60000);
-
-    if (delay > 0) {
-      setTimeout(() => {
-        interaction.channel.send(
-          `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
-        );
-      }, delay);
+    if (isNaN(h) || isNaN(m)) {
+      return interaction.reply("❌ Format invalide (HH:MM)");
     }
-  }
 
-  // ⚔️ message final
-  const finalDelay = target.getTime() - Date.now();
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
 
-  if (finalDelay > 0) {
-    setTimeout(() => {
-      interaction.channel.send(
-        `@everyone ⚔️ **${nom}** MAINTENANT !`
-      );
-    }, finalDelay);
-  }
-}
+    if (target < new Date()) {
+      target.setDate(target.getDate() + 1);
+    }
+
+    const timestamp = Math.floor(target.getTime() / 1000);
+
+    await interaction.reply(
+      `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
+    );
+
+    // 🔔 rappel
+    if (rappel) {
+      const delay = target.getTime() - Date.now() - (rappel * 60000);
+
+      if (delay > 0) {
+        setTimeout(() => {
+          interaction.channel.send(
+            `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
+          );
+        }, delay);
+      }
+    }
 
     // ⚔️ message final
     const finalDelay = target.getTime() - Date.now();
