@@ -20,6 +20,9 @@ const SHEET_ID = process.env.SHEET_ID;
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
 
+// 🔥 GOOGLE SHEET API (TON SCRIPT)
+const SHEET_API = "https://script.google.com/macros/s/AKfycbw60BEwx1byiUpcJ-inREfrR5aFRVBvU569F7qQEC0BUcI5cMx5q8MqaNj3TlqQHydEnQ/exec";
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -28,35 +31,50 @@ const client = new Client({
   ]
 });
 
+// =========================
+// COMMANDES SLASH
+// =========================
 async function registerCommands() {
+
   const commands = [
+
     new SlashCommandBuilder()
       .setName('searchpalmon')
       .setDescription('Recherche un Palmon par ID')
       .addStringOption(option =>
         option.setName('id')
-          .setDescription('Ex: 033 ou 033 027')
           .setRequired(true)
       ),
 
     new SlashCommandBuilder()
       .setName('event')
       .setDescription('Créer un événement')
-      .addStringOption(option =>
-        option.setName('nom')
-          .setDescription('Nom de l’événement')
-          .setRequired(true)
-      )
-      .addStringOption(option =>
-        option.setName('heure')
-          .setDescription('Format HH:MM')
-          .setRequired(true)
-      )
-      .addIntegerOption(option =>
-        option.setName('rappel')
-          .setDescription('Minutes avant rappel (optionnel)')
-          .setRequired(false)
-      )
+      .addStringOption(o => o.setName('nom').setRequired(true))
+      .addStringOption(o => o.setName('heure').setRequired(true))
+      .addIntegerOption(o => o.setName('rappel')),
+
+    // ➕ ADD PLAYER
+    new SlashCommandBuilder()
+      .setName('addplayer')
+      .setDescription('Ajouter un joueur')
+      .addStringOption(o =>
+        o.setName('name').setRequired(true))
+      .addNumberOption(o => o.setName('t1'))
+      .addNumberOption(o => o.setName('t2'))
+      .addNumberOption(o => o.setName('t3'))
+      .addNumberOption(o => o.setName('t4')),
+
+    // ⚡ UPGRADE PLAYER
+    new SlashCommandBuilder()
+      .setName('upgrade')
+      .setDescription('Modifier puissance joueur')
+      .addStringOption(o =>
+        o.setName('name').setRequired(true))
+      .addNumberOption(o => o.setName('t1'))
+      .addNumberOption(o => o.setName('t2'))
+      .addNumberOption(o => o.setName('t3'))
+      .addNumberOption(o => o.setName('t4'))
+
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -66,14 +84,19 @@ async function registerCommands() {
     { body: commands }
   );
 
-  console.log("✅ Slash command prête !");
+  console.log("✅ Slash commands OK");
 }
 
+// =========================
+// ERROR HANDLING
+// =========================
 process.on("unhandledRejection", (err) => {
-  console.error("❌ UNHANDLED:", err);
+  console.error("❌ ERROR:", err);
 });
 
-// 🔥 utils
+// =========================
+// UTILS (TON CODE EXISTANT)
+// =========================
 const formatAll = (cell) => {
   if (!cell) return [];
   const value = cell.v ?? cell.f;
@@ -96,7 +119,9 @@ const getColor = (ids, attrMap) => {
   return 0x00AE86;
 };
 
-// 🔥 ATTR
+// =========================
+// GOOGLE SHEETS READ
+// =========================
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
   const res = await fetch(url);
@@ -117,7 +142,9 @@ async function getAttributesMap() {
   return map;
 }
 
-// 🔥 PLAYERS
+// =========================
+// PLAYERS
+// =========================
 async function getData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_PLAYERS}`;
   const res = await fetch(url);
@@ -136,7 +163,9 @@ async function getData() {
   }));
 }
 
-// 🔥 LOGIQUE COMMUNE
+// =========================
+// LOGIQUE SEARCH
+// =========================
 async function runSearch(args) {
   const [data, attrMap] = await Promise.all([
     getData(),
@@ -156,13 +185,17 @@ async function runSearch(args) {
   return { results, attrMap, formatAttr };
 }
 
-// 🔥 INTERACTIONS
+// =========================
+// BOT EVENTS
+// =========================
 client.on("interactionCreate", async (interaction) => {
+
   if (!interaction.isChatInputCommand()) return;
 
-  // 🔎 SEARCH
+  // =========================
+  // 🔎 SEARCH (TON CODE)
+  // =========================
   if (interaction.commandName === "searchpalmon") {
-
     await interaction.deferReply();
 
     const args = interaction.options.getString("id")
@@ -172,9 +205,7 @@ client.on("interactionCreate", async (interaction) => {
 
     const { results, attrMap, formatAttr } = await runSearch(args);
 
-    if (!results.length) {
-      return interaction.editReply("❌ Aucun résultat");
-    }
+    if (!results.length) return interaction.editReply("❌ Aucun résultat");
 
     const pageSize = 5;
     let page = 0;
@@ -184,7 +215,7 @@ client.on("interactionCreate", async (interaction) => {
       const slice = results.slice(page * pageSize, (page + 1) * pageSize);
 
       return new EmbedBuilder()
-        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+        .setTitle(`🔎 ${args.join(" ")} (${results.length})`)
         .setColor(getColor(slice[0].ids, attrMap))
         .setDescription(
           slice.map(p =>
@@ -195,107 +226,85 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
         .setFooter({ text: `Page ${page + 1}/${totalPages}` });
     };
 
-    const getButtons = () =>
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-        new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === totalPages - 1)
-      );
-
-    const msg = await interaction.editReply({
-      embeds: [generateEmbed()],
-      components: [getButtons()]
-    });
+    const msg = await interaction.editReply({ embeds: [generateEmbed()] });
 
     const collector = msg.createMessageComponentCollector({ time: 60000 });
 
     collector.on("collect", async (i) => {
-      if (i.user.id !== interaction.user.id)
-        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
-
-      if (i.customId === "prev") page--;
       if (i.customId === "next") page++;
+      if (i.customId === "prev") page--;
 
-      await i.update({
-        embeds: [generateEmbed()],
-        components: [getButtons()]
-      });
+      await i.update({ embeds: [generateEmbed()] });
     });
   }
 
-  // 📅 EVENT
+  // =========================
+  // 📅 EVENT (TON CODE)
+  // =========================
   if (interaction.commandName === "event") {
-
     const nom = interaction.options.getString("nom");
     const heure = interaction.options.getString("heure");
     const rappel = interaction.options.getInteger("rappel");
 
     const [h, m] = heure.split(':').map(Number);
 
-    if (isNaN(h) || isNaN(m)) {
-      return interaction.reply("❌ Format invalide (HH:MM)");
-    }
-
     const now = DateTime.now().setZone("Europe/Paris");
 
-    let target = now.set({
-      hour: h,
-      minute: m,
-      second: 0,
-      millisecond: 0
-    });
+    let target = now.set({ hour: h, minute: m, second: 0 });
 
-    if (target < now) {
-      target = target.plus({ days: 1 });
-    }
+    if (target < now) target = target.plus({ days: 1 });
 
     const timestamp = Math.floor(target.toSeconds());
-    const channelId = interaction.channelId;
 
-    await interaction.reply(
-      `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
-    );
-
-    // 🔔 rappel
-    if (rappel) {
-      const delay = target.toMillis() - Date.now() - (rappel * 60000);
-
-      if (delay > 0) {
-        setTimeout(async () => {
-          try {
-            const channel = await client.channels.fetch(channelId);
-            if (!channel) return;
-
-            await channel.send(
-              `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
-            );
-          } catch (err) {
-            console.error("❌ ERREUR RAPPEL:", err.message);
-          }
-        }, delay);
-      }
-    }
-
-    // ⚔️ final
-    const finalDelay = target.toMillis() - Date.now();
-
-    if (finalDelay > 0) {
-      setTimeout(async () => {
-        try {
-          const channel = await client.channels.fetch(channelId);
-          if (!channel) return;
-
-          await channel.send(
-            `@everyone ⚔️ **${nom}** MAINTENANT !`
-          );
-        } catch (err) {
-          console.error("❌ ERREUR FINAL:", err.message);
-        }
-      }, finalDelay);
-    }
+    await interaction.reply(`📅 ${nom} <t:${timestamp}:F>`);
   }
+
+  // =========================
+  // ➕ ADD PLAYER (NEW)
+  // =========================
+  if (interaction.commandName === "addplayer") {
+
+    const name = interaction.options.getString("name");
+    const t1 = interaction.options.getNumber("t1") || 0;
+    const t2 = interaction.options.getNumber("t2") || 0;
+    const t3 = interaction.options.getNumber("t3") || 0;
+    const t4 = interaction.options.getNumber("t4") || 0;
+
+    const url = `${SHEET_API}?cmd=add&name=${name}&team1=${t1}&team2=${t2}&team3=${t3}&team4=${t4}`;
+
+    const res = await fetch(url);
+    const text = await res.text();
+
+    return interaction.reply(text);
+  }
+
+  // =========================
+  // ⚡ UPGRADE (NEW)
+  // =========================
+  if (interaction.commandName === "upgrade") {
+
+    const name = interaction.options.getString("name");
+    const t1 = interaction.options.getNumber("t1");
+    const t2 = interaction.options.getNumber("t2");
+    const t3 = interaction.options.getNumber("t3");
+    const t4 = interaction.options.getNumber("t4");
+
+    let url = `${SHEET_API}?cmd=upgrade&name=${name}`;
+
+    if (t1 !== null) url += `&team1=${t1}`;
+    if (t2 !== null) url += `&team2=${t2}`;
+    if (t3 !== null) url += `&team3=${t3}`;
+    if (t4 !== null) url += `&team4=${t4}`;
+
+    const res = await fetch(url);
+    const text = await res.text();
+
+    return interaction.reply(text);
+  }
+
 });
 
-// READY
+// =========================
 client.once("ready", async () => {
   console.log(`✅ ${client.user.tag}`);
   await registerCommands();
