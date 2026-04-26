@@ -360,6 +360,38 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       }, finalDelay);
     }
   }
+
+  if (interaction.commandName === "addplayer") {
+  await interaction.deferReply();
+
+  const name = interaction.options.getString("name");
+  const t1 = interaction.options.getNumber("t1") ?? 0;
+  const t2 = interaction.options.getNumber("t2") ?? 0;
+  const t3 = interaction.options.getNumber("t3") ?? 0;
+  const t4 = interaction.options.getNumber("t4") ?? 0;
+
+  try {
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "addplayer",
+        name,
+        t1, t2, t3, t4
+      })
+    });
+
+    const data = await res.json();
+
+    await interaction.editReply(
+      `✅ Joueur ajouté : **${name}**`
+    );
+
+  } catch (err) {
+    console.error(err);
+    await interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+  }
+}
 });
 
 // READY
