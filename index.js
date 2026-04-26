@@ -20,7 +20,7 @@ const SHEET_ID = process.env.SHEET_ID;
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
 
-// 🔥 GOOGLE SHEET API (TON SCRIPT)
+// 🔥 GOOGLE SCRIPT API
 const SHEET_API = "https://script.google.com/macros/s/AKfycbw60BEwx1byiUpcJ-inREfrR5aFRVBvU569F7qQEC0BUcI5cMx5q8MqaNj3TlqQHydEnQ/exec";
 
 const client = new Client({
@@ -32,12 +32,11 @@ const client = new Client({
 });
 
 // =========================
-// COMMANDES SLASH
+// SLASH COMMANDS
 // =========================
 async function registerCommands() {
 
   const commands = [
-
     new SlashCommandBuilder()
       .setName('searchpalmon')
       .setDescription('Recherche un Palmon par ID')
@@ -57,8 +56,7 @@ async function registerCommands() {
     new SlashCommandBuilder()
       .setName('addplayer')
       .setDescription('Ajouter un joueur')
-      .addStringOption(o =>
-        o.setName('name').setRequired(true))
+      .addStringOption(o => o.setName('name').setRequired(true))
       .addNumberOption(o => o.setName('t1'))
       .addNumberOption(o => o.setName('t2'))
       .addNumberOption(o => o.setName('t3'))
@@ -68,8 +66,7 @@ async function registerCommands() {
     new SlashCommandBuilder()
       .setName('upgrade')
       .setDescription('Modifier puissance joueur')
-      .addStringOption(o =>
-        o.setName('name').setRequired(true))
+      .addStringOption(o => o.setName('name').setRequired(true))
       .addNumberOption(o => o.setName('t1'))
       .addNumberOption(o => o.setName('t2'))
       .addNumberOption(o => o.setName('t3'))
@@ -95,7 +92,7 @@ process.on("unhandledRejection", (err) => {
 });
 
 // =========================
-// UTILS (TON CODE EXISTANT)
+// UTILS
 // =========================
 const formatAll = (cell) => {
   if (!cell) return [];
@@ -120,7 +117,7 @@ const getColor = (ids, attrMap) => {
 };
 
 // =========================
-// GOOGLE SHEETS READ
+// SHEETS
 // =========================
 async function getAttributesMap() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`;
@@ -142,9 +139,6 @@ async function getAttributesMap() {
   return map;
 }
 
-// =========================
-// PLAYERS
-// =========================
 async function getData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_PLAYERS}`;
   const res = await fetch(url);
@@ -164,7 +158,7 @@ async function getData() {
 }
 
 // =========================
-// LOGIQUE SEARCH
+// SEARCH LOGIC
 // =========================
 async function runSearch(args) {
   const [data, attrMap] = await Promise.all([
@@ -186,16 +180,15 @@ async function runSearch(args) {
 }
 
 // =========================
-// BOT EVENTS
+// BOT
 // =========================
 client.on("interactionCreate", async (interaction) => {
 
   if (!interaction.isChatInputCommand()) return;
 
-  // =========================
-  // 🔎 SEARCH (TON CODE)
-  // =========================
+  // 🔎 SEARCH
   if (interaction.commandName === "searchpalmon") {
+
     await interaction.deferReply();
 
     const args = interaction.options.getString("id")
@@ -226,22 +219,36 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
         .setFooter({ text: `Page ${page + 1}/${totalPages}` });
     };
 
-    const msg = await interaction.editReply({ embeds: [generateEmbed()] });
+    const getButtons = () =>
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
+        new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === totalPages - 1)
+      );
+
+    const msg = await interaction.editReply({
+      embeds: [generateEmbed()],
+      components: [getButtons()]
+    });
 
     const collector = msg.createMessageComponentCollector({ time: 60000 });
 
     collector.on("collect", async (i) => {
-      if (i.customId === "next") page++;
-      if (i.customId === "prev") page--;
+      if (i.user.id !== interaction.user.id)
+        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
 
-      await i.update({ embeds: [generateEmbed()] });
+      if (i.customId === "prev") page--;
+      if (i.customId === "next") page++;
+
+      await i.update({
+        embeds: [generateEmbed()],
+        components: [getButtons()]
+      });
     });
   }
 
-  // =========================
-  // 📅 EVENT (TON CODE)
-  // =========================
+  // 📅 EVENT
   if (interaction.commandName === "event") {
+
     const nom = interaction.options.getString("nom");
     const heure = interaction.options.getString("heure");
     const rappel = interaction.options.getInteger("rappel");
@@ -256,12 +263,12 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
     const timestamp = Math.floor(target.toSeconds());
 
-    await interaction.reply(`📅 ${nom} <t:${timestamp}:F>`);
+    await interaction.reply(
+      `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
+    );
   }
 
-  // =========================
-  // ➕ ADD PLAYER (NEW)
-  // =========================
+  // ➕ ADD PLAYER
   if (interaction.commandName === "addplayer") {
 
     const name = interaction.options.getString("name");
@@ -278,9 +285,7 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     return interaction.reply(text);
   }
 
-  // =========================
-  // ⚡ UPGRADE (NEW)
-  // =========================
+  // ⚡ UPGRADE PLAYER
   if (interaction.commandName === "upgrade") {
 
     const name = interaction.options.getString("name");
