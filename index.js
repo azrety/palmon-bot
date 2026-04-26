@@ -261,9 +261,10 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
       if (delay > 0) {
         setTimeout(() => {
-          interaction.channel.send(
-            `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
-          );
+          const channel = await client.channels.fetch(interaction.channelId);
+            if (!channel) return;
+
+            channel.send(...)
         }, delay);
       }
     }
