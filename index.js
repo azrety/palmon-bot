@@ -11,7 +11,7 @@ const {
 } = require('discord.js');
 
 const fetch = require('node-fetch');
-const { DateTime } = require('luxon'); // 🔥 AJOUT
+const { DateTime } = require('luxon');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -222,7 +222,7 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     });
   }
 
-  // 📅 EVENT FIX LUXON (PLUS DE +2H)
+  // 📅 EVENT
   if (interaction.commandName === "event") {
 
     const nom = interaction.options.getString("nom");
@@ -235,7 +235,6 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       return interaction.reply("❌ Format invalide (HH:MM)");
     }
 
-    // 🌍 FIX TIMEZONE PROPRE
     const now = DateTime.now().setZone("Europe/Paris");
 
     let target = now.set({
@@ -250,6 +249,7 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     }
 
     const timestamp = Math.floor(target.toSeconds());
+    const channelId = interaction.channelId;
 
     await interaction.reply(
       `@everyone 📅 **${nom}**\n🕒 <t:${timestamp}:F>\n⏳ <t:${timestamp}:R>`
@@ -260,11 +260,17 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       const delay = target.toMillis() - Date.now() - (rappel * 60000);
 
       if (delay > 0) {
-        setTimeout(() => {
-          const channel = await client.channels.fetch(interaction.channelId);
+        setTimeout(async () => {
+          try {
+            const channel = await client.channels.fetch(channelId);
             if (!channel) return;
 
-            channel.send(...)
+            await channel.send(
+              `@everyone ⏳ **${nom}** dans ${rappel} minutes ! (<t:${timestamp}:R>)`
+            );
+          } catch (err) {
+            console.error("❌ ERREUR RAPPEL:", err.message);
+          }
         }, delay);
       }
     }
@@ -273,10 +279,17 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     const finalDelay = target.toMillis() - Date.now();
 
     if (finalDelay > 0) {
-      setTimeout(() => {
-        interaction.channel.send(
-          `@everyone ⚔️ **${nom}** MAINTENANT !`
-        );
+      setTimeout(async () => {
+        try {
+          const channel = await client.channels.fetch(channelId);
+          if (!channel) return;
+
+          await channel.send(
+            `@everyone ⚔️ **${nom}** MAINTENANT !`
+          );
+        } catch (err) {
+          console.error("❌ ERREUR FINAL:", err.message);
+        }
       }, finalDelay);
     }
   }
