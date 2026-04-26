@@ -19,6 +19,7 @@ const SHEET_ID = process.env.SHEET_ID;
 
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
+const SHEET_API = "https://script.google.com/macros/s/AKfycbw60BEwx1byiUpcJ-inREfrR5aFRVBvU569F7qQEC0BUcI5cMx5q8MqaNj3TlqQHydEnQ/exec";
 
 const client = new Client({
   intents: [
@@ -27,9 +28,13 @@ const client = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
-
+// =========================
+// SLASH COMMANDS
+// =========================
 async function registerCommands() {
   const commands = [
+
+    // 🔎 SEARCH PALMON
     new SlashCommandBuilder()
       .setName('searchpalmon')
       .setDescription('Recherche un Palmon par ID')
@@ -39,6 +44,7 @@ async function registerCommands() {
           .setRequired(true)
       ),
 
+    // 📅 EVENT
     new SlashCommandBuilder()
       .setName('event')
       .setDescription('Créer un événement')
@@ -56,7 +62,68 @@ async function registerCommands() {
         option.setName('rappel')
           .setDescription('Minutes avant rappel (optionnel)')
           .setRequired(false)
+      ),
+
+    // ➕ ADD PLAYER
+    new SlashCommandBuilder()
+      .setName('addplayer')
+      .setDescription('Ajouter un joueur')
+      .addStringOption(o =>
+        o.setName('name')
+          .setDescription('Nom du joueur')
+          .setRequired(true)
       )
+      .addNumberOption(o =>
+        o.setName('t1')
+          .setDescription('Team 1')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t2')
+          .setDescription('Team 2')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t3')
+          .setDescription('Team 3')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t4')
+          .setDescription('Team 4')
+          .setRequired(false)
+      ),
+
+    // ⚡ UPGRADE PLAYER
+    new SlashCommandBuilder()
+      .setName('upgrade')
+      .setDescription('Modifier puissance joueur')
+      .addStringOption(o =>
+        o.setName('name')
+          .setDescription('Nom du joueur')
+          .setRequired(true)
+      )
+      .addNumberOption(o =>
+        o.setName('t1')
+          .setDescription('Team 1')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t2')
+          .setDescription('Team 2')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t3')
+          .setDescription('Team 3')
+          .setRequired(false)
+      )
+      .addNumberOption(o =>
+        o.setName('t4')
+          .setDescription('Team 4')
+          .setRequired(false)
+      )
+
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -66,7 +133,7 @@ async function registerCommands() {
     { body: commands }
   );
 
-  console.log("✅ Slash command prête !");
+  console.log("✅ Slash commands enregistrées !");
 }
 
 process.on("unhandledRejection", (err) => {
