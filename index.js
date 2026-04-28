@@ -127,6 +127,10 @@ async function registerCommands() {
           .setDescription('Nom du joueur')
           .setRequired(true)
       ),
+//TOP//
+    new SlashCommandBuilder()
+      .setName('top')
+      .setDescription('Classement des joueurs (T1)'),      
 
   ].map(c => c.toJSON());
 
@@ -247,13 +251,24 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
 
       const data = await res.json().catch(() => ({}));
 
-      const embed = new EmbedBuilder()
-        .setTitle(`📜 Historique de ${data.name || name}`)
-        .setColor(0x00AE86)
-        .setDescription(data.history || "Aucun historique");
+      if (!data.success || !data.history?.length) {
+        return interaction.editReply("❌ Aucun historique");
+      }
 
-      return interaction.editReply({ embeds: [embed] });
-    }
+      const lines = data.history.map(h => {
+        const date = new Date(h.date).toLocaleString("fr-FR");
+
+        return `📅 **${date}**
+    T1: ${h.t1} | T2: ${h.t2} | T3: ${h.t3} | T4: ${h.t4}`;
+      });
+
+  const embed = new EmbedBuilder()
+    .setTitle(`📜 Historique de ${data.name}`)
+    .setColor(0x00AE86)
+    .setDescription(lines.join("\n\n").slice(0, 4000)); // limite Discord
+
+  return interaction.editReply({ embeds: [embed] });
+}
 
     // =========================
     // SEARCH PALMON (UNCHANGED)
@@ -304,7 +319,7 @@ ${p.ids.join(" ")}`
     }
 
     // =========================
-    // EVENT (UNCHANGED)
+    // EVENT 
     // =========================
     if (cmd === "event") {
       const nom = interaction.options.getString("nom");
@@ -321,7 +336,40 @@ ${p.ids.join(" ")}`
 
       return interaction.reply(`📅 ${nom}\n<t:${ts}:F>\n<t:${ts}:R>`);
     }
+// =========================
+// TOP
+// =========================
+    if (cmd === "top") {
+  await interaction.deferReply();
 
+  const res = await fetch(SHEET_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getplayers" })
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!data?.success) {
+    return interaction.editReply("❌ API error");
+  }
+
+  // 🔥 TRI PAR T1
+  const sorted = data.players
+    .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
+    .slice(0, 10); // top 10
+
+  const lines = sorted.map((p, i) =>
+    `#${i + 1} 👤 **${p.name}** — T1: ${p.t1}`
+  );
+
+  const embed = new EmbedBuilder()
+    .setTitle("🏆 Top joueurs (T1)")
+    .setColor(0xFFD700)
+    .setDescription(lines.join("\n"));
+
+  return interaction.editReply({ embeds: [embed] });
+}
   } catch (err) {
     console.error(err);
     if (interaction.deferred)
