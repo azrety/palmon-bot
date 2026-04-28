@@ -129,7 +129,11 @@ async function registerCommands() {
         o.setName('t4')
           .setDescription('Team 4')
           .setRequired(false)
-      )
+      ),
+      // 📊 STATS//
+      new SlashCommandBuilder()
+        .setName('stats')
+        .setDescription('Afficher les stats de tous les joueurs')
 
   ].map(cmd => cmd.toJSON());
 
@@ -294,6 +298,49 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
         components: [getButtons()]
       });
     });
+
+    if (interaction.commandName === "stats") {
+
+  await interaction.deferReply();
+
+  try {
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "getplayers"
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      return interaction.editReply("❌ Erreur API");
+    }
+
+    const players = data.players;
+
+    if (!players.length) {
+      return interaction.editReply("❌ Aucun joueur");
+    }
+
+    const text = players.map(p => {
+      return `👤 **${p.name}**
+• T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
+    }).join("\n\n");
+
+    const embed = new EmbedBuilder()
+      .setTitle("📊 Stats des joueurs")
+      .setDescription(text)
+      .setColor(0x00AE86);
+
+    return interaction.editReply({ embeds: [embed] });
+
+  } catch (err) {
+    console.error(err);
+    return interaction.editReply("❌ Erreur serveur");
+  }
+}
   }
 
   // 📅 EVENT
