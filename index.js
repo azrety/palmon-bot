@@ -589,27 +589,49 @@ if (cmd === "concours-teub") {
   if (total2 > total1) winnerGlobal = `🏆 ${p2.name} gagne`;
   const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
 
-  const embed = new EmbedBuilder()
-    .setTitle("📊 Concours de teub")
-    .setColor(0xFF00FF)
-    .addFields(
-      {
-        name: "⚔️ Comparaison",
-        value: lines.join("\n"),
-      },
-      {
-        name: "📈 Totaux",
-        value: `${p1.name}: **${total1}**\n${p2.name}: **${total2}**`
-      },
-      {
-        name: "🏆 Résultat",
-        value: winnerGlobal
-      },
-      {
-        name: "💬 Clash",
-        value: randomClash
-      }
-    );
+  const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
+
+const winnerName =
+  total1 > total2 ? p1.name :
+  total2 > total1 ? p2.name :
+  "ÉGALITÉ PARFAITE";
+
+const winnerEmoji =
+  total1 > total2 ? "🟥" :
+  total2 > total1 ? "🟦" :
+  "⚖️";
+
+const embed = new EmbedBuilder()
+  .setTitle("⚔️ ARENA MATCH : CONCOURS DE TEUB")
+  .setColor(0xFF00FF)
+  .setDescription(
+`🟥 **${p1.name}**  VS  🟦 **${p2.name}**
+
+🎮 *Bienvenue dans ce nouveau concours de teub ou les cerveaux s'affrontent!"
+## 🎯 Sortez vos armes ... ATTAQUEZ 
+
+🔴 T1 → ${p1.name}: ${p1.t1} ⚔️ ${p2.name}: ${p2.t1}  
+🔵 T2 → ${p1.name}: ${p1.t2} ⚔️ ${p2.name}: ${p2.t2}  
+🟣 T3 → ${p1.name}: ${p1.t3} ⚔️ ${p2.name}: ${p2.t3}  
+🟡 T4 → ${p1.name}: ${p1.t4} ⚔️ ${p2.name}: ${p2.t4}
+
+## 📊 FINAL SCORE
+
+🟥 **${p1.name}** → ${total1} pts  
+🟦 **${p2.name}** → ${total2} pts  
+
+---
+
+## 🏆 WINNER
+
+${winnerEmoji} **${winnerName}**
+
+## 🎙️ LIVE COMMENTATOR
+💬 *${randomClash}*
+
+📡 *“Ce match vient d’entrer dans les annales du serveur…”*
+`
+  );
 
   return interaction.editReply({ embeds: [embed] });
 }
