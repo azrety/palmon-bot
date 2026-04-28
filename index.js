@@ -66,27 +66,58 @@ async function registerCommands() {
           .setDescription('Rappel en minutes')
       ),
 
+      new SlashCommandBuilder()
+    .setName('addplayer')
+    .setDescription('Ajouter un joueur')
+    .addStringOption(o =>
+      o.setName('name')
+        .setDescription('Nom du joueur')
+        .setRequired(true)
+    )
+    .addNumberOption(o =>
+      o.setName('t1')
+        .setDescription('Score T1')
+        .setRequired(false)
+    )
+    .addNumberOption(o =>
+      o.setName('t2')
+        .setDescription('Score T2')
+        .setRequired(false)
+    )
+    .addNumberOption(o =>
+      o.setName('t3')
+        .setDescription('Score T3')
+        .setRequired(false)
+    )
+    .addNumberOption(o =>
+      o.setName('t4')
+        .setDescription('Score T4')
+        .setRequired(false)
+    ),
     new SlashCommandBuilder()
-      .setName('addplayer')
-      .setDescription('Ajouter un joueur')
-      .addStringOption(o =>
-        o.setName('name').setRequired(true)
-      )
-      .addNumberOption(o => o.setName('t1'))
-      .addNumberOption(o => o.setName('t2'))
-      .addNumberOption(o => o.setName('t3'))
-      .addNumberOption(o => o.setName('t4')),
-
-    new SlashCommandBuilder()
-      .setName('upgrade')
-      .setDescription('Améliorer un joueur')
-      .addStringOption(o =>
-        o.setName('name').setRequired(true)
-      )
-      .addNumberOption(o => o.setName('t1'))
-      .addNumberOption(o => o.setName('t2'))
-      .addNumberOption(o => o.setName('t3'))
-      .addNumberOption(o => o.setName('t4')),
+    .setName('upgrade')
+    .setDescription('Améliorer les stats d’un joueur')
+    .addStringOption(o =>
+      o.setName('name')
+        .setDescription('Nom du joueur')
+        .setRequired(true)
+    )
+    .addNumberOption(o =>
+      o.setName('t1')
+        .setDescription('Bonus T1')
+    )
+    .addNumberOption(o =>
+      o.setName('t2')
+        .setDescription('Bonus T2')
+    )
+    .addNumberOption(o =>
+      o.setName('t3')
+        .setDescription('Bonus T3')
+    )
+    .addNumberOption(o =>
+      o.setName('t4')
+        .setDescription('Bonus T4')
+    ),
 
     new SlashCommandBuilder()
       .setName('stats')
