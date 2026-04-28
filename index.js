@@ -583,12 +583,6 @@ if (cmd === "concours-teub") {
 
   const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
   const total2 = stats.reduce((acc, s) => acc + (p2[s] || 0), 0);
-
-  let winnerGlobal = "⚖️ Égalité parfaite";
-  if (total1 > total2) winnerGlobal = `🏆 ${p1.name} gagne`;
-  if (total2 > total1) winnerGlobal = `🏆 ${p2.name} gagne`;
-  const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
-
   const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
 
 const winnerName =
