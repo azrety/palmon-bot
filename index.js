@@ -19,7 +19,7 @@ const SHEET_ID = process.env.SHEET_ID;
 
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
-const SHEET_API = "https://script.google.com/macros/s/AKfycbw60BEwx1byiUpcJ-inREfrR5aFRVBvU569F7qQEC0BUcI5cMx5q8MqaNj3TlqQHydEnQ/exec";
+const SHEET_API = process.env.SHEET_API;
 
 const client = new Client({
   intents: [
@@ -381,15 +381,15 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       })
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    console.log("RESPONSE:", text);
 
-    await interaction.editReply(
-      `✅ Joueur ajouté : **${name}**`
-    );
+    const data = JSON.parse(text);
 
-  } catch (err) {
-    console.error(err);
-    await interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+    if (data.success) {
+    await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
+  } else {
+    await interaction.editReply(`❌ Erreur : ${data.error}`);
   }
 }
 });
