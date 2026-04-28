@@ -121,7 +121,16 @@ async function registerCommands() {
 
     new SlashCommandBuilder()
       .setName('stats')
-      .setDescription('Stats des joueurs')
+      .setDescription('Stats des joueurs'),
+
+     new SlashCommandBuilder()
+    .setName('history')
+    .setDescription('Afficher l’historique d’un joueur')
+    .addStringOption(o =>
+      o.setName('name')
+        .setDescription('Nom du joueur')
+        .setRequired(true)
+    ), 
 
   ].map(c => c.toJSON());
 
@@ -223,6 +232,9 @@ client.on("interactionCreate", async (interaction) => {
   try {
     switch (commandName) {
 
+      // =========================
+      // SEARCH PALMON
+      // =========================
       case "searchpalmon": {
         await interaction.deferReply({ ephemeral: true });
 
@@ -233,7 +245,8 @@ client.on("interactionCreate", async (interaction) => {
 
         const { results, map, formatAttr } = await runSearch(args);
 
-        if (!results.length) return interaction.editReply("❌ Aucun résultat");
+        if (!results.length)
+          return interaction.editReply("❌ Aucun résultat");
 
         let page = 0;
         const pageSize = 5;
@@ -256,11 +269,23 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
         const row = () =>
           new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-            new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === total - 1)
+            new ButtonBuilder()
+              .setCustomId("prev")
+              .setLabel("⬅️")
+              .setStyle(ButtonStyle.Secondary)
+              .setDisabled(page === 0),
+
+            new ButtonBuilder()
+              .setCustomId("next")
+              .setLabel("➡️")
+              .setStyle(ButtonStyle.Secondary)
+              .setDisabled(page === total - 1)
           );
 
-        const msg = await interaction.editReply({ embeds: [build()], components: [row()] });
+        const msg = await interaction.editReply({
+          embeds: [build()],
+          components: [row()]
+        });
 
         const collector = msg.createMessageComponentCollector({ time: 60000 });
 
@@ -271,12 +296,18 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
           if (i.customId === "prev") page--;
           if (i.customId === "next") page++;
 
-          await i.update({ embeds: [build()], components: [row()] });
+          await i.update({
+            embeds: [build()],
+            components: [row()]
+          });
         });
 
         break;
       }
 
+      // =========================
+      // STATS
+      // =========================
       case "stats": {
         await interaction.deferReply();
 
@@ -287,7 +318,9 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
         });
 
         const data = await res.json();
-        if (!data.success) return interaction.editReply("❌ API error");
+
+        if (!data.success)
+          return interaction.editReply("❌ API error");
 
         const embed = new EmbedBuilder()
           .setTitle("📊 Stats")
@@ -302,13 +335,16 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
         return interaction.editReply({ embeds: [embed] });
       }
 
+      // =========================
+      // EVENT
+      // =========================
       case "event": {
         const nom = interaction.options.getString("nom");
         const heure = interaction.options.getString("heure");
-        const rappel = interaction.options.getInteger("rappel");
 
         const [h, m] = heure.split(":").map(Number);
-        if (isNaN(h) || isNaN(m)) return interaction.reply("❌ HH:MM invalide");
+        if (isNaN(h) || isNaN(m))
+          return interaction.reply("❌ HH:MM invalide");
 
         const now = DateTime.now().setZone("Europe/Paris");
 
@@ -317,11 +353,14 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
 
         const ts = Math.floor(target.toSeconds());
 
-        await interaction.reply(`@everyone 📅 ${nom}\n<t:${ts}:F>\n<t:${ts}:R>`);
-
-        break;
+        return interaction.reply(
+          `@everyone 📅 ${nom}\n<t:${ts}:F>\n<t:${ts}:R>`
+        );
       }
 
+      // =========================
+      // ADD + UPGRADE
+      // =========================
       case "addplayer":
       case "upgrade": {
         await interaction.deferReply();
@@ -347,21 +386,48 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
 
         return interaction.editReply(`✅ ${name} mis à jour`);
       }
+
+      // =========================
+      // HISTORY 📜
+      // =========================
+      case "history": {
+        await interaction.deferReply();
+
+        const name = interaction.options.getString("name");
+
+        const res = await fetch(SHEET_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "history",
+            name
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.success)
+          return interaction.editReply(`❌ ${data.error || "Erreur"}`);
+
+        return interaction.editReply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle(`📜 Historique de ${data.name}`)
+              .setDescription(data.history || "Aucun historique")
+              .setColor(0x00AE86)
+          ]
+        });
+      }
+
     }
+
   } catch (err) {
     console.error(err);
+
     if (interaction.deferred) {
       return interaction.editReply("❌ Erreur serveur");
     }
   }
-});
-
-// =========================
-// READY
-// =========================
-client.once("ready", async () => {
-  console.log(`✅ ${client.user.tag}`);
-  await registerCommands();
 });
 
 client.login(TOKEN);
