@@ -362,12 +362,10 @@ ${p.ids.join(" ")}`
       const medals = ["🥇", "🥈", "🥉"];
 
       const lines = sorted.map((p, i) => {
-        const medal = medals[i] || `🏅 #${i + 1}`;
+      const medal = medals[i] || `🏅 #${i + 1}`;
 
-        return `${medal} **${p.name}**
-    └ T1: **${p.t1}**
-    └ T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
-      });
+      return `${medal} **${p.name}** — T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
+    });
 
       const embed = new EmbedBuilder()
         .setTitle("🏆 Leaderboard - T1 Ranking")
