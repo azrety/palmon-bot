@@ -27,6 +27,8 @@ const SHEET_API = process.env.SHEET_API;
 console.log("TOKEN OK ?", !!TOKEN);
 console.log("SHEET_API OK ?", !!SHEET_API);
 console.log("SHEET_ID OK ?", !!SHEET_ID);
+const text = await res.text();
+console.log("RAW RESPONSE:", text);
 
 const client = new Client({
   intents: [
@@ -391,7 +393,13 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     const text = await res.text();
     console.log("RESPONSE:", text);
 
-    const data = JSON.parse(text);
+        let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.log("❌ JSON invalide:", text);
+      return interaction.editReply("❌ API invalide (pas du JSON)");
+    }
 
    if (data.success) {
     await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
