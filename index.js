@@ -341,7 +341,10 @@ ${p.ids.join(" ")}`
 // =========================
         if (cmd === "top") {
       await interaction.deferReply();
+const text = await res.text();
+console.log("SHEET RAW:", text);
 
+const data = JSON.parse(text);
       const res = await fetch(SHEET_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
