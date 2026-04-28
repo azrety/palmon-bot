@@ -413,8 +413,8 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       }, finalDelay);
     }
   }
-
-  if (interaction.commandName === "addplayer") {
+// ➕ ADDPLAYER
+if (interaction.commandName === "addplayer") {
   await interaction.deferReply();
 
   const name = interaction.options.getString("name");
@@ -427,82 +427,59 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     const res = await fetch(SHEET_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "addplayer",
-        name,
-        t1, t2, t3, t4
-      })
+      body: JSON.stringify({ action: "addplayer", name, t1, t2, t3, t4 })
     });
 
     const text = await res.text();
-    console.log("RAW RESPONSE:", text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      console.log("❌ JSON invalide:", text);
-      return interaction.editReply("❌ API invalide");
-    }
+    const data = JSON.parse(text);
 
     if (data.success) {
-      await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
+      return interaction.editReply(`✅ Joueur ajouté : **${name}**`);
     } else {
-      await interaction.editReply(`❌ Erreur : ${data.error}`);
+      return interaction.editReply(`❌ Erreur : ${data.error}`);
     }
 
   } catch (err) {
-    console.error("❌ ADDPLAYER ERROR:", err);
-    return interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+    console.error(err);
+    return interaction.editReply("❌ Erreur serveur");
   }
-      // 🔼 UPGRADE
-    if (interaction.commandName === "upgrade") {
-      await interaction.deferReply();
+}
 
-      const name = interaction.options.getString("name");
-      const t1 = interaction.options.getNumber("t1") ?? 0;
-      const t2 = interaction.options.getNumber("t2") ?? 0;
-      const t3 = interaction.options.getNumber("t3") ?? 0;
-      const t4 = interaction.options.getNumber("t4") ?? 0;
+// 🔼 UPGRADE
+else if (interaction.commandName === "upgrade") {
+  await interaction.deferReply();
 
-      try {
-        const res = await fetch(SHEET_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "upgrade",
-            name,
-            t1, t2, t3, t4
-          })
-        });
+  const name = interaction.options.getString("name");
+  const t1 = interaction.options.getNumber("t1") ?? 0;
+  const t2 = interaction.options.getNumber("t2") ?? 0;
+  const t3 = interaction.options.getNumber("t3") ?? 0;
+  const t4 = interaction.options.getNumber("t4") ?? 0;
 
-        const text = await res.text();
-        console.log("RAW UPGRADE:", text);
+  try {
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upgrade", name, t1, t2, t3, t4 })
+    });
 
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return interaction.editReply("❌ API invalide");
-        }
+    const text = await res.text();
+    const data = JSON.parse(text);
 
-        if (!data.success) {
-          return interaction.editReply(`❌ ${data.error || "Joueur introuvable"}`);
-        }
-
-        return interaction.editReply(
-          `✅ **${name}** amélioré !\n+T1:${t1} +T2:${t2} +T3:${t3} +T4:${t4}`
-        );
-
-      } catch (err) {
-        console.error("❌ UPGRADE ERROR:", err);
-        return interaction.editReply("❌ Erreur serveur");
-      }
+    if (!data.success) {
+      return interaction.editReply(`❌ ${data.error || "Joueur introuvable"}`);
     }
-  } // fin addplayer
-}); // ✅ FERMETURE DU client.on("interactionCreate")
 
+    return interaction.editReply(
+      `✅ **${name}** amélioré !\n+T1:${t1} +T2:${t2} +T3:${t3} +T4:${t4}`
+    );
+
+  } catch (err) {
+    console.error(err);
+    return interaction.editReply("❌ Erreur serveur");
+  }
+}
 console.log("SHEET_API =", SHEET_API);
+
 
 // READY
 client.once("ready", async () => {
