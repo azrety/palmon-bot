@@ -606,6 +606,7 @@ if (cmd === "concours-teub") {
         value: winnerGlobal
       },
       {
+        name: "💬 Clash",
         value: randomClash
       }
     );
