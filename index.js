@@ -386,10 +386,14 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
 
     const data = JSON.parse(text);
 
-    if (data.success) {
+   if (data.success) {
     await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
   } else {
     await interaction.editReply(`❌ Erreur : ${data.error}`);
+  }
+  } catch (err) {
+    console.error(err);
+    await interaction.editReply("❌ Erreur lors de l'ajout du joueur");
   }
 }
 });
