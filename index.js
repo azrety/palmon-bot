@@ -455,6 +455,50 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     console.error("❌ ADDPLAYER ERROR:", err);
     return interaction.editReply("❌ Erreur lors de l'ajout du joueur");
   }
+      // 🔼 UPGRADE
+    if (interaction.commandName === "upgrade") {
+      await interaction.deferReply();
+
+      const name = interaction.options.getString("name");
+      const t1 = interaction.options.getNumber("t1") ?? 0;
+      const t2 = interaction.options.getNumber("t2") ?? 0;
+      const t3 = interaction.options.getNumber("t3") ?? 0;
+      const t4 = interaction.options.getNumber("t4") ?? 0;
+
+      try {
+        const res = await fetch(SHEET_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "upgrade",
+            name,
+            t1, t2, t3, t4
+          })
+        });
+
+        const text = await res.text();
+        console.log("RAW UPGRADE:", text);
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return interaction.editReply("❌ API invalide");
+        }
+
+        if (!data.success) {
+          return interaction.editReply(`❌ ${data.error || "Joueur introuvable"}`);
+        }
+
+        return interaction.editReply(
+          `✅ **${name}** amélioré !\n+T1:${t1} +T2:${t2} +T3:${t3} +T4:${t4}`
+        );
+
+      } catch (err) {
+        console.error("❌ UPGRADE ERROR:", err);
+        return interaction.editReply("❌ Erreur serveur");
+      }
+    }
   } // fin addplayer
 }); // ✅ FERMETURE DU client.on("interactionCreate")
 
