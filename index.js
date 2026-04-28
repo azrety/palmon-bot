@@ -10,9 +10,7 @@ const {
   ButtonStyle
 } = require('discord.js');
 
-console.log("TOKEN OK ?", !!TOKEN);
-console.log("SHEET_API OK ?", !!SHEET_API);
-console.log("SHEET_ID OK ?", !!SHEET_ID);
+
 
 
 const fetch = require('node-fetch');
@@ -25,6 +23,10 @@ const SHEET_ID = process.env.SHEET_ID;
 const GID_PLAYERS = "307583676";
 const GID_ATTR = "1049184729";
 const SHEET_API = process.env.SHEET_API;
+
+console.log("TOKEN OK ?", !!TOKEN);
+console.log("SHEET_API OK ?", !!SHEET_API);
+console.log("SHEET_ID OK ?", !!SHEET_ID);
 
 const client = new Client({
   intents: [
