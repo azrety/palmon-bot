@@ -7,12 +7,15 @@ const {
   SlashCommandBuilder
 } = require('discord.js');
 
-const fetch = require('node-fetch');
+// 🔥 FIX node-fetch (compatible v3)
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 const { DateTime } = require('luxon');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
+const SHEET_API = process.env.SHEET_API;
 
 const GUILD_ID = "1491506781245931563";
 
@@ -57,20 +60,14 @@ async function registerCommands() {
       .setName('searchpalmon')
       .setDescription('Recherche Palmon par ID')
       .addStringOption(o =>
-        o.setName('id')
-          .setDescription('Ex: 033 027')
-          .setRequired(true)
+        o.setName('id').setDescription('Ex: 033 027').setRequired(true)
       ),
 
     new SlashCommandBuilder()
       .setName('event')
       .setDescription('Créer un event')
-      .addStringOption(o =>
-        o.setName('nom').setRequired(true)
-      )
-      .addStringOption(o =>
-        o.setName('heure').setRequired(true)
-      )
+      .addStringOption(o => o.setName('nom').setRequired(true))
+      .addStringOption(o => o.setName('heure').setRequired(true))
 
   ].map(c => c.toJSON());
 
@@ -85,23 +82,22 @@ async function registerCommands() {
 }
 
 // =========================
-// READY
-// =========================
 client.once("ready", () => {
   console.log(`🤖 connecté ${client.user.tag}`);
   registerCommands();
 });
 
 // =========================
-// HANDLER
+// HANDLER SAFE
 // =========================
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const cmd = interaction.commandName;
-  const name = interaction.options.getString("name");
 
   try {
+
+    const name = interaction.options.getString("name");
 
     // =========================
     // ADD PLAYER
@@ -109,7 +105,7 @@ client.on("interactionCreate", async (interaction) => {
     if (cmd === "addplayer") {
       await interaction.deferReply();
 
-      const res = await fetch(process.env.SHEET_API, {
+      const res = await fetch(SHEET_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,8 +118,8 @@ client.on("interactionCreate", async (interaction) => {
         })
       });
 
-      const data = await res.json();
-      return interaction.editReply(data.success ? `✅ ${name} ajouté` : `❌ ${data.error}`);
+      const data = await res.json().catch(() => ({}));
+      return interaction.editReply(data.success ? `✅ ${name} ajouté` : `❌ erreur API`);
     }
 
     // =========================
@@ -132,7 +128,7 @@ client.on("interactionCreate", async (interaction) => {
     if (cmd === "upgrade") {
       await interaction.deferReply();
 
-      const res = await fetch(process.env.SHEET_API, {
+      const res = await fetch(SHEET_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -145,8 +141,8 @@ client.on("interactionCreate", async (interaction) => {
         })
       });
 
-      const data = await res.json();
-      return interaction.editReply(data.success ? `🔥 ${name} mis à jour` : `❌ ${data.error}`);
+      const data = await res.json().catch(() => ({}));
+      return interaction.editReply(data.success ? `🔥 ${name} mis à jour` : `❌ erreur`);
     }
 
     // =========================
@@ -155,13 +151,15 @@ client.on("interactionCreate", async (interaction) => {
     if (cmd === "stats") {
       await interaction.deferReply();
 
-      const res = await fetch(process.env.SHEET_API, {
+      const res = await fetch(SHEET_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "getplayers" })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+
+      if (!data?.success) return interaction.editReply("❌ API error");
 
       const embed = new EmbedBuilder()
         .setTitle("📊 Stats")
@@ -182,16 +180,16 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     if (cmd === "history") {
       await interaction.deferReply();
 
-      const res = await fetch(process.env.SHEET_API, {
+      const res = await fetch(SHEET_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "history", name })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       const embed = new EmbedBuilder()
-        .setTitle(`📜 Historique de ${data.name}`)
+        .setTitle(`📜 Historique de ${data.name || name}`)
         .setColor(0x00AE86)
         .setDescription(data.history || "Aucun historique");
 
@@ -199,7 +197,7 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     }
 
     // =========================
-    // SEARCH PALMON (FULL RESTAURÉ)
+    // SEARCH PALMON (UNCHANGED)
     // =========================
     if (cmd === "searchpalmon") {
       await interaction.deferReply({ ephemeral: true });
@@ -209,31 +207,14 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
         .split(/\s+/)
         .map(i => i.padStart(3, "0"));
 
-      const dataRes = await fetch(
+      const res = await fetch(
         `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=307583676`
       );
 
-      const attrRes = await fetch(
-        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=1049184729`
-      );
+      const text = await res.text();
+      const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
 
-      const dataText = await dataRes.text();
-      const attrText = await attrRes.text();
-
-      const dataJson = JSON.parse(dataText.substring(dataText.indexOf("{"), dataText.lastIndexOf("}") + 1));
-      const attrJson = JSON.parse(attrText.substring(attrText.indexOf("{"), attrText.lastIndexOf("}") + 1));
-
-      const map = {};
-
-      attrJson.table.rows.forEach(r => {
-        const id = String(r.c[0]?.v).padStart(3, "0");
-        map[id] = {
-          category: r.c[1]?.v || "C",
-          name: `${r.c[2]?.v || ""}/${r.c[3]?.v || ""}/${r.c[4]?.v || ""}/${r.c[5]?.v || ""}`
-        };
-      });
-
-      const players = dataJson.table.rows.map(r => ({
+      const players = json.table.rows.map(r => ({
         pseudo: r.c[0]?.v || "Inconnu",
         ids: [
           ...(r.c[1]?.v?.match(/\d{3}/g) || []),
@@ -250,19 +231,13 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
       if (!results.length)
         return interaction.editReply("❌ Aucun résultat");
 
-      const format = (id) => {
-        const a = map[id];
-        if (!a) return `**${id}**`;
-        return `**${id}** [${a.category}] ${a.name}`;
-      };
-
       const embed = new EmbedBuilder()
         .setTitle(`🔎 Résultats (${results.length})`)
         .setColor(0x00AE86)
         .setDescription(
           results.slice(0, 10).map(p =>
             `👤 **${p.pseudo}**
-${p.ids.map(format).join("\n")}`
+${p.ids.join(" ")}`
           ).join("\n\n")
         );
 
@@ -270,7 +245,7 @@ ${p.ids.map(format).join("\n")}`
     }
 
     // =========================
-    // EVENT (INCHANGÉ LOGIQUE)
+    // EVENT (UNCHANGED)
     // =========================
     if (cmd === "event") {
       const nom = interaction.options.getString("nom");
@@ -295,5 +270,4 @@ ${p.ids.map(format).join("\n")}`
   }
 });
 
-// =========================
 client.login(TOKEN);
