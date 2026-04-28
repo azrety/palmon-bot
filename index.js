@@ -369,51 +369,51 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
   }
 
   if (interaction.commandName === "addplayer") {
-    await interaction.deferReply();
+  await interaction.deferReply();
 
-    const name = interaction.options.getString("name");
-    const t1 = interaction.options.getNumber("t1") ?? 0;
-    const t2 = interaction.options.getNumber("t2") ?? 0;
-    const t3 = interaction.options.getNumber("t3") ?? 0;
-    const t4 = interaction.options.getNumber("t4") ?? 0;
+  const name = interaction.options.getString("name");
+  const t1 = interaction.options.getNumber("t1") ?? 0;
+  const t2 = interaction.options.getNumber("t2") ?? 0;
+  const t3 = interaction.options.getNumber("t3") ?? 0;
+  const t4 = interaction.options.getNumber("t4") ?? 0;
 
+  try {
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "addplayer",
+        name,
+        t1, t2, t3, t4
+      })
+    });
+
+    const text = await res.text();
+    console.log("RAW RESPONSE:", text);
+
+    let data;
     try {
-      const res = await fetch(SHEET_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "addplayer",
-          name,
-          t1,
-          t2,
-          t3,
-          t4
-        })
-      });
-
-      const text = await res.text();
-      console.log("RAW RESPONSE:", text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.log("❌ JSON invalide:", text);
-        return interaction.editReply("❌ API invalide");
-      }
-
-      if (data.success) {
-        await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
-      } else {
-        await interaction.editReply(`❌ Erreur : ${data.error}`);
-      }
-    } catch (err) {
-      console.error("❌ ERREUR ADDPLAYER:", err);
-      await interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+      data = JSON.parse(text);
+    } catch (e) {
+      console.log("❌ JSON invalide:", text);
+      return interaction.editReply("❌ API invalide");
     }
-  }
 
-  console.log("SHEET_API =", SHEET_API);
+    if (data.success) {
+      await interaction.editReply(`✅ Joueur ajouté : **${name}**`);
+    } else {
+      await interaction.editReply(`❌ Erreur : ${data.error}`);
+    }
+
+  } catch (err) {
+    console.error("❌ ADDPLAYER ERROR:", err);
+    return interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+  }
+  } // fin addplayer
+}); // ✅ FERMETURE DU client.on("interactionCreate")
+
+console.log("SHEET_API =", SHEET_API);
+
 // READY
 client.once("ready", async () => {
   console.log(`✅ ${client.user.tag}`);
