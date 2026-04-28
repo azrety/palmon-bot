@@ -339,37 +339,44 @@ ${p.ids.join(" ")}`
 // =========================
 // TOP
 // =========================
-    if (cmd === "top") {
-  await interaction.deferReply();
+        if (cmd === "top") {
+      await interaction.deferReply();
 
-  const res = await fetch(SHEET_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getplayers" })
-  });
+      const res = await fetch(SHEET_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getplayers" })
+      });
 
-  const data = await res.json().catch(() => null);
+      const data = await res.json().catch(() => null);
 
-  if (!data?.success) {
-    return interaction.editReply("❌ API error");
-  }
+      if (!data?.success) {
+        return interaction.editReply("❌ API error");
+      }
 
-  // 🔥 TRI PAR T1
-  const sorted = data.players
-    .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
-    .slice(0, 10); // top 10
+      // TRI T1
+      const sorted = data.players
+        .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
+        .slice(0, 10);
 
-  const lines = sorted.map((p, i) =>
-    `#${i + 1} 👤 **${p.name}** — T1: ${p.t1}`
-  );
+      const medals = ["🥇", "🥈", "🥉"];
 
-  const embed = new EmbedBuilder()
-    .setTitle("🏆 Top joueurs (T1)")
-    .setColor(0xFFD700)
-    .setDescription(lines.join("\n"));
+      const lines = sorted.map((p, i) => {
+        const medal = medals[i] || `🏅 #${i + 1}`;
 
-  return interaction.editReply({ embeds: [embed] });
-}
+        return `${medal} **${p.name}**
+    └ T1: **${p.t1}**
+    └ T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle("🏆 Leaderboard - T1 Ranking")
+        .setColor(0xFFD700)
+        .setDescription(lines.join("\n\n"))
+        .setFooter({ text: "Classement basé sur T1 uniquement" });
+
+      return interaction.editReply({ embeds: [embed] });
+    }
   } catch (err) {
     console.error(err);
     if (interaction.deferred)
