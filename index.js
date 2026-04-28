@@ -114,21 +114,19 @@ async function registerCommands() {
         o.setName('t4')
           .setDescription('Bonus T4')
     ),
-
+// STATS//
     new SlashCommandBuilder()
       .setName('stats')
       .setDescription('Voir stats'),
-
+// HISTORY//
     new SlashCommandBuilder()
       .setName('history')
       .setDescription('Voir historique')
-      .addStringOption(o => o.setName('name').setRequired(true)),
-
-    new SlashCommandBuilder()
-      .setName('event')
-      .setDescription('Créer un event')
-      .addStringOption(o => o.setName('nom').setRequired(true))
-      .addStringOption(o => o.setName('heure').setRequired(true))
+      .addStringOption(o =>
+        o.setName('name')
+          .setDescription('Nom du joueur')
+          .setRequired(true)
+      ),
 
   ].map(c => c.toJSON());
 
