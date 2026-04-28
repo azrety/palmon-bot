@@ -342,50 +342,45 @@ ${p.ids.join(" ")}`
     if (cmd === "top") {
       await interaction.deferReply();
 
-      try {
-        const res = await fetch(SHEET_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "getplayers" })
-        });
+      const res = await fetch(SHEET_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getplayers" })
+      });
 
-        const text = await res.text();
+      const data = await res.json().catch(() => null);
 
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.log("RAW SHEET RESPONSE:", text);
-          return interaction.editReply("❌ API renvoie du texte invalide");
-        }
+      if (!data?.success) {
+        return interaction.editReply("❌ API error");
+      }
 
-        if (!data?.success) {
-          return interaction.editReply("❌ API error (backend)");
-        }
+      const sorted = data.players
+        .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
+        .slice(0, 10);
 
-        const sorted = data.players
-          .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
-          .slice(0, 10);
+      const medals = ["🥇", "🥈", "🥉"];
 
-        const medals = ["🥇", "🥈", "🥉"];
+      const lines = sorted.map((p, i) => {
+        const medal = medals[i] || `🏅 #${i + 1}`;
 
-        const lines = sorted.map((p, i) => {
-          const medal = medals[i] || `🏅 #${i + 1}`;
+        return `${medal} **${p.name}**
+    T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
+      });
 
-          return `${medal} **${p.name}** — T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
-        });
+      const embed = new EmbedBuilder()
+        .setTitle("🏆 Leaderboard - T1 Ranking")
+        .setColor(0xFFD700)
+        .setDescription(lines.join("\n\n"))
+        .setFooter({ text: "Classement basé sur T1 uniquement" });
 
-        const embed = new EmbedBuilder()
-          .setTitle("🏆 Leaderboard - T1 Ranking")
-          .setColor(0xFFD700)
-          .setDescription(lines.join("\n\n"));
-
-        return interaction.editReply({ embeds: [embed] });
+      return interaction.editReply({ embeds: [embed] });
+    }
 
       } catch (err) {
         console.error(err);
-        return interaction.editReply("❌ erreur réseau API");
+        if (interaction.deferred)
+          return interaction.editReply("❌ erreur serveur");
       }
-    }
+    });
 
 client.login(TOKEN);
