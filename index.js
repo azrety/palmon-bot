@@ -239,7 +239,7 @@ client.on("interactionCreate", async (interaction) => {
   // 🔎 SEARCH
   if (interaction.commandName === "searchpalmon") {
 
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     const args = interaction.options.getString("id")
       .trim()
@@ -390,8 +390,6 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
       })
     });
 
-    const text = await res.text();
-    console.log("RESPONSE:", text);
 
         let data;
     try {
@@ -407,12 +405,11 @@ ${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
     await interaction.editReply(`❌ Erreur : ${data.error}`);
   }
   } catch (err) {
-    console.error(err);
-    await interaction.editReply("❌ Erreur lors de l'ajout du joueur");
+    console.error("❌ ADDPLAYER ERROR:", err);
+    return interaction.editReply("❌ Erreur lors de l'ajout du joueur");
   }
-}
 });
-
+console.log("SHEET_API =", SHEET_API);
 // READY
 client.once("ready", async () => {
   console.log(`✅ ${client.user.tag}`);
