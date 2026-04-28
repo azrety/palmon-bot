@@ -22,7 +22,41 @@ const GUILD_ID = "1491506781245931563";
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
-
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+// CLASH GENERATOR //
+const clashs = [
+  "😐 Duel correct, rien de fou.",
+  "🤨 C’était bizarre mais ok.",
+  "📉 Niveau pas ouf aujourd’hui.",
+  "⚖️ Match neutre, sans émotion.",
+  "💀 HUMILIATION TOTALE.",
+  "☠️ Catastrophique… on en parle plus.",
+  "🤡 T’as juste servi de sparring.",
+  "🚮 Delete ton build s’il te plaît.",
+  "🪦 RIP carrière instantané.",
+  "🔥 C’était un carnage sans défense.",
+  "🏆 Victoire écrasante. Y a même pas eu match.",
+  "🔥 Il est venu, il a vu… et il a humilié.",
+  "👑 On appelle ça une démonstration.",
+  "🎯 Merci d’être venu participer… enfin essayer.",
+  "📊 Performance solide, validée par la science et le ridicule adverse.",
+  "💀 Ouch… ça pique un peu là non ?",
+  "😬 On va faire comme si t’avais pas essayé.",
+  "🎭 T’as perdu avec dignité… enfin presque.",
+  "🤏 C’est pas la taille qui compte… mais là ça aide pas.",
+  "📉 On a connu des défaites, mais celle-là elle est collector.",
+  "🔥 T’as réussi l’exploit de perdre avant même de commencer.",
+  "🧠 Même le bot a hésité à afficher le résultat par respect.",
+  "📚 C’est une défaite, mais surtout une leçon de vie.",
+  "🗂️ On va archiver ça dans “fails historiques”.",
+  "🥲 T’es pas dernier… ah si en fait.",
+  "🤡 Analyse en cours… ah non pardon, c’était déjà fini.",
+  "🧾 Résultat validé par un expert totalement impartial (moi).",
+  "🎁 Le gagnant repart avec la gloire, le perdant avec… rien.",
+  "💥 Tentative intéressante. Résultat catastrophique.",
+  "🎟️ Le public demande un remboursement."
+  
+];
 // =========================
 // REGISTER COMMANDS
 // =========================
@@ -130,9 +164,23 @@ async function registerCommands() {
 //TOP//
     new SlashCommandBuilder()
       .setName('top')
-      .setDescription('Classement des joueurs (T1)'),      
-
+      .setDescription('Classement des joueurs (T1)'),   
+// CONCOURS TEUB//   
+    new SlashCommandBuilder()
+      .setName('concours-teub')
+      .setDescription('Comparer 2 joueurs')
+      .addStringOption(o =>
+        o.setName('joueur1')
+          .setDescription('Premier joueur')
+          .setRequired(true)
+      )
+      .addStringOption(o =>
+        o.setName('joueur2')
+          .setDescription('Deuxième joueur')
+          .setRequired(true)
+      ),
   ].map(c => c.toJSON());
+// fintableau//
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
 
@@ -241,34 +289,96 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     // HISTORY
     // =========================
     if (cmd === "history") {
-      await interaction.deferReply();
+    await interaction.deferReply();
 
-      const res = await fetch(SHEET_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "history", name })
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "history", name })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!data.success || !data.history?.length) {
+      return interaction.editReply("❌ Aucun historique");
+    }
+
+    const formatLine = (h, prev) => {
+      const date = new Date(h.date).toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
       });
 
-      const data = await res.json().catch(() => ({}));
+      const diff = (a, b) =>
+        prev ? (a - b !== 0 ? `(${(a - b > 0 ? "+" : "") + (a - b).toFixed(1)})` : "") : "";
 
-      if (!data.success || !data.history?.length) {
-        return interaction.editReply("❌ Aucun historique");
+      return `📅 ${date} → T1:${h.t1}${diff(h.t1, prev?.t1)} | T2:${h.t2}${diff(h.t2, prev?.t2)} | T3:${h.t3}${diff(h.t3, prev?.t3)} | T4:${h.t4}${diff(h.t4, prev?.t4)}`;
+    };
+
+    const lines = data.history.map((h, i) =>
+      formatLine(h, i > 0 ? data.history[i - 1] : null)
+    );
+
+    // 🔥 PAGINATION
+    const perPage = 5;
+    let page = 0;
+    const maxPage = Math.ceil(lines.length / perPage) - 1;
+
+    const generateEmbed = (page) => {
+      const start = page * perPage;
+      const current = lines.slice(start, start + perPage);
+
+      return new EmbedBuilder()
+        .setTitle(`📜 Historique de ${data.name} (page ${page + 1}/${maxPage + 1})`)
+        .setColor(0x00AE86)
+        .setDescription(current.join("\n"));
+    };
+
+    const getRow = () => new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("prev")
+        .setLabel("⬅️")
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(page === 0),
+
+      new ButtonBuilder()
+        .setCustomId("next")
+        .setLabel("➡️")
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(page === maxPage)
+    );
+    const msg = await interaction.editReply({
+      embeds: [generateEmbed(page)],
+      components: [getRow()]
+    });
+ 
+
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== interaction.user.id) {
+        return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
       }
 
-      const lines = data.history.map(h => {
-        const date = new Date(h.date).toLocaleString("fr-FR");
+      if (i.customId === "prev") page--;
+      if (i.customId === "next") page++;
 
-        return `📅 **${date}**
-    T1: ${h.t1} | T2: ${h.t2} | T3: ${h.t3} | T4: ${h.t4}`;
+      const maxPage = Math.ceil(lines.length / perPage) - 1;
+      if (page < 0) page = 0;
+      if (page > maxPage) page = maxPage;
+
+      await i.update({
+        embeds: [generateEmbed(page)],
+        components: [getRow()]
       });
+    });
 
-  const embed = new EmbedBuilder()
-    .setTitle(`📜 Historique de ${data.name}`)
-    .setColor(0x00AE86)
-    .setDescription(lines.join("\n\n").slice(0, 4000)); // limite Discord
-
-  return interaction.editReply({ embeds: [embed] });
-}
+    collector.on("end", () => {
+      msg.edit({ components: [] });
+    });
+  }
 
     // =========================
     // SEARCH PALMON (UNCHANGED)
@@ -339,43 +449,170 @@ ${p.ids.join(" ")}`
 // =========================
 // TOP
 // =========================
-    if (cmd === "top") {
-      await interaction.deferReply();
+if (cmd === "top") {
+  await interaction.deferReply();
 
-      const res = await fetch(SHEET_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getplayers" })
-      });
+  const res = await fetch(SHEET_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getplayers" })
+  });
 
-      const data = await res.json().catch(() => null);
+  const data = await res.json().catch(() => null);
 
-      if (!data?.success) {
-        return interaction.editReply("❌ API error");
-      }
+  if (!data?.success) {
+    return interaction.editReply("❌ API error");
+  }
 
-      const sorted = data.players
-        .sort((a, b) => (b.t1 || 0) - (a.t1 || 0))
-        .slice(0, 10);
+  // TRI
+  const players = data.players.sort((a, b) => (b.t1 || 0) - (a.t1 || 0));
 
-      const medals = ["🥇", "🥈", "🥉"];
+  const pageSize = 10;
+  let page = 0;
+  const maxPage = Math.ceil(players.length / pageSize) - 1;
 
-      const lines = sorted.map((p, i) => {
-        const medal = medals[i] || `🏅 #${i + 1}`;
+  const medals = ["🥇", "🥈", "🥉"];
 
-        return `${medal} **${p.name}**
-    T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
-      });
+  function generateEmbed(page) {
+    const start = page * pageSize;
+    const current = players.slice(start, start + pageSize);
 
-      const embed = new EmbedBuilder()
-        .setTitle("🏆 Leaderboard - T1 Ranking")
-        .setColor(0xFFD700)
-        .setDescription(lines.join("\n\n"))
-        .setFooter({ text: "Classement basé sur T1 uniquement" });
+    const lines = current.map((p, i) => {
+      const rank = start + i;
+      const medal = medals[rank] || `🏅 #${rank + 1}`;
 
-      return interaction.editReply({ embeds: [embed] });
+      return `${medal} **${p.name}**
+T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
+    });
+
+    return new EmbedBuilder()
+      .setTitle("🏆 Leaderboard - T1 Ranking")
+      .setColor(0xFFD700)
+      .setDescription(lines.join("\n\n"))
+      .setFooter({ text: `Page ${page + 1} / ${maxPage + 1}` });
+  }
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("prev")
+      .setLabel("⬅️")
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId("next")
+      .setLabel("➡️")
+      .setStyle(ButtonStyle.Primary)
+  );
+
+  const message = await interaction.editReply({
+    embeds: [generateEmbed(page)],
+    components: [row]
+  });
+
+  const collector = message.createMessageComponentCollector({
+    time: 60000
+  });
+
+  collector.on("collect", async (i) => {
+    if (i.user.id !== interaction.user.id) {
+      return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
     }
 
+    if (i.customId === "prev") {
+      page = page > 0 ? page - 1 : maxPage;
+    }
+
+    if (i.customId === "next") {
+      page = page < maxPage ? page + 1 : 0;
+    }
+
+    await i.update({
+      embeds: [generateEmbed(page)],
+      components: [row]
+    });
+  });
+
+  collector.on("end", () => {
+    message.edit({ components: [] });
+  });
+}
+// ========================= 
+// CONCOURS TEUB
+// =========================
+if (cmd === "concours-teub") {
+  await interaction.deferReply();
+
+  const j1 = interaction.options.getString("joueur1");
+  const j2 = interaction.options.getString("joueur2");
+
+  const res = await fetch(SHEET_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getplayers" })
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!data?.success) return interaction.editReply("❌ API error");
+
+  const p1 = data.players.find(p => p.name.toLowerCase() === j1.toLowerCase());
+  const p2 = data.players.find(p => p.name.toLowerCase() === j2.toLowerCase());
+
+  if (!p1 || !p2) {
+    return interaction.editReply("❌ Joueur introuvable");
+  }
+
+  const stats = ["t1", "t2", "t3", "t4"];
+
+  let score1 = 0;
+  let score2 = 0;
+
+  const lines = stats.map(stat => {
+    const v1 = p1[stat] || 0;
+    const v2 = p2[stat] || 0;
+
+    let winner = "⚖️";
+    if (v1 > v2) {
+      winner = "🟢";
+      score1++;
+    } else if (v2 > v1) {
+      winner = "🔴";
+      score2++;
+    }
+
+    return `**${stat.toUpperCase()}** → ${p1.name}: ${v1} | ${p2.name}: ${v2} ${winner}`;
+  });
+
+  const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
+  const total2 = stats.reduce((acc, s) => acc + (p2[s] || 0), 0);
+
+  let winnerGlobal = "⚖️ Égalité parfaite";
+  if (total1 > total2) winnerGlobal = `🏆 ${p1.name} gagne`;
+  if (total2 > total1) winnerGlobal = `🏆 ${p2.name} gagne`;
+  const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
+
+  const embed = new EmbedBuilder()
+    .setTitle("📊 Concours de teub")
+    .setColor(0xFF00FF)
+    .addFields(
+      {
+        name: "⚔️ Comparaison",
+        value: lines.join("\n"),
+      },
+      {
+        name: "📈 Totaux",
+        value: `${p1.name}: **${total1}**\n${p2.name}: **${total2}**`
+      },
+      {
+        name: "🏆 Résultat",
+        value: winnerGlobal
+      },
+      {
+        name: "💬 Clash",
+        value: randomClash
+      }
+    );
+
+  return interaction.editReply({ embeds: [embed] });
+}
       } catch (err) {
         console.error(err);
         if (interaction.deferred)
