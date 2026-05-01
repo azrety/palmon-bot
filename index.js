@@ -415,98 +415,67 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     // =========================
     // SEARCH PALMON (UNCHANGED)
     // =========================
- if (cmd === "searchpalmon") {
-  await interaction.deferReply(); // 🔥 PUBLIC
+if (interaction.commandName === "searchpalmon") {
 
-  const args = interaction.options.getString("id")
-    .trim()
-    .split(/\s+/)
-    .map(i => i.padStart(3, "0"));
+    await interaction.deferReply();
 
-  const res = await fetch(
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=307583676`
-  );
+    const args = interaction.options.getString("id")
+      .trim()
+      .split(/\s+/)
+      .map(id => id.padStart(3, "0"));
 
-  const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+    const { results, attrMap, formatAttr } = await runSearch(args);
 
-  const players = json.table.rows.map(r => ({
-    pseudo: r.c[0]?.v || "Inconnu",
-    raw: [r.c[1]?.v, r.c[2]?.v, r.c[3]?.v, r.c[4]?.v].filter(Boolean)
-  }));
-
-  const results = players.filter(p =>
-    args.every(id =>
-      p.raw.some(col => col.includes(id))
-    )
-  );
-
-  if (!results.length)
-    return interaction.editReply("❌ Aucun résultat");
-
-  // 🔥 FORMAT EXACT
-  const lines = results.map(p => {
-    const mons = p.raw.map(m => `• ${m}`).join("\n");
-    return `👤 ${p.pseudo}\n${mons}`;
-  });
-
-  // PAGINATION
-  const perPage = 3; // comme avant (tu peux ajuster)
-  let page = 0;
-  const maxPage = Math.ceil(lines.length / perPage) - 1;
-
-  const generateEmbed = (page) => {
-    const start = page * perPage;
-    const current = lines.slice(start, start + perPage);
-
-    return new EmbedBuilder()
-      .setTitle(`🔎 Résultats (${results.length})`)
-      .setColor(0x00AE86)
-      .setDescription(current.join("\n\n"));
-  };
-
-  const getRow = () => new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("prev")
-      .setLabel("⬅️")
-      .setStyle(ButtonStyle.Primary)
-      .setDisabled(page === 0),
-
-    new ButtonBuilder()
-      .setCustomId("next")
-      .setLabel("➡️")
-      .setStyle(ButtonStyle.Primary)
-      .setDisabled(page === maxPage)
-  );
-
-  const msg = await interaction.editReply({
-    embeds: [generateEmbed(page)],
-    components: [getRow()]
-  });
-
-  const collector = msg.createMessageComponentCollector({ time: 60000 });
-
-  collector.on("collect", async (i) => {
-    if (i.user.id !== interaction.user.id) {
-      return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
+    if (!results.length) {
+      return interaction.editReply("❌ Aucun résultat");
     }
 
-    if (i.customId === "prev") page--;
-    if (i.customId === "next") page++;
+    const pageSize = 5;
+    let page = 0;
+    const totalPages = Math.ceil(results.length / pageSize);
 
-    if (page < 0) page = 0;
-    if (page > maxPage) page = maxPage;
+    const generateEmbed = () => {
+      const slice = results.slice(page * pageSize, (page + 1) * pageSize);
 
-    await i.update({
-      embeds: [generateEmbed(page)],
-      components: [getRow()]
+      return new EmbedBuilder()
+        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+        .setColor(getColor(slice[0].ids, attrMap))
+        .setDescription(
+          slice.map(p =>
+            `👤 **${p.pseudo}**
+${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
+          ).join("\n\n")
+        )
+        .setFooter({ text: `Page ${page + 1}/${totalPages}` });
+    };
+
+    const getButtons = () =>
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
+        new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === totalPages - 1)
+      );
+
+    const msg = await interaction.editReply({
+      embeds: [generateEmbed()],
+      components: [getButtons()]
     });
-  });
 
-  collector.on("end", () => {
-    msg.edit({ components: [] });
-  });
-}
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== interaction.user.id)
+        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
+
+      if (i.customId === "prev") page--;
+      if (i.customId === "next") page++;
+
+      await i.update({
+        embeds: [generateEmbed()],
+        components: [getButtons()]
+      });
+    });
+  }
+
 
 // =========================
 // TOP
