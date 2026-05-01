@@ -637,7 +637,7 @@ if (cmd === "concours-teub") {
 🎮 *Bienvenue dans ce nouveau concours de teub où les cerveaux s'affrontent!*
 ## 🎯 Sortez vos armes ...
 
-* 🤛READY...FIGHT🤜*
+🤛*READY...FIGHT*🤜
 
 ${lines.join("\n")}
 --- 
