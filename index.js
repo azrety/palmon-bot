@@ -37,50 +37,50 @@ const clashs = [
   "🤡 {loser} a juste servi de sparring.",
   "🤡 {loser} s'est fait écraser sans résistance",
   "🚮 {loser} direction la poubelle des stats !",
-  "🪦 Ce joueur a quitté le jeu mentalement",
-  "🔥 C’était un carnage sans défense.",
-  "🏆 Victoire écrasante. Y a même pas eu match.",
-  "🔥 Il est venu, il a vu… et il a humilié.",
-  "👑 On appelle ça une démonstration.",
-  "🎯 Merci d’être venu participer… enfin essayer.",
-  "📊 Performance solide, validée par la science et le ridicule adverse.",
-  "💀 Ouch… ça pique un peu là non ?",
+  "🪦 {loser} a quitté le jeu mentalement",
+  "🔥 C’était un carnage sans défense de {loser}.",
+  "🏆 Victoire écrasante de {winner}. Y a même pas eu match.",
+  "🔥 {winner} est venu, il a vu… et il a humilié.",
+  "👑 On appelle ça une démonstration de {winner}.",
+  "🎯 Merci d’être venu participer {winner}… enfin essayer.",
+  "📊 Performance solide de {winner}, validée par la science et le ridicule adverse de {loser}.",
+  "💀 Ouch… ça pique un peu là non {loser} ?",
   "😬 On va faire comme si t’avais pas essayé.",
-  "🎭 T’as perdu avec dignité… enfin presque.",
+  "🎭 {loser} a perdu avec dignité… enfin presque.",
   "🤏 C’est pas la taille qui compte… mais là ça aide pas.",
   "📉 On a connu des défaites, mais celle-là elle est collector.",
-  "🔥 T’as réussi l’exploit de perdre avant même de commencer.",
+  "🔥 {loser} a réussi l’exploit de perdre avant même de commencer.",
   "🧠 Même le bot a hésité à afficher le résultat par respect.",
-  "📚 C’est une défaite, mais surtout une leçon de vie.",
+  "📚 C’est une défaite, mais surtout une leçon de vie pour {loser}.",
   "🗂️ On va archiver ça dans “fails historiques”.",
-  "🥲 T’es pas dernier… ah si en fait.",
+  "🥲 {loser} n’est pas dernier… ah si en fait.",
   "🤡 Analyse en cours… ah non pardon, c’était déjà fini.",
   "🧾 Résultat validé par un expert totalement impartial (moi).",
-  "🎁 Le gagnant repart avec la gloire, le perdant avec… rien.",
+  "🎁 {winner} repart avec la gloire, {loser} avec… rien.",
   "💥 Tentative intéressante. Résultat catastrophique.",
   "🎟️ Le public demande un remboursement.",
   "😐 On a vu pire… mais pas aujourd’hui.",
   "🤨 C’était… quelque chose.",
   "😬 Le public reste partagé. Surtout entre rire et pleurer.",
   "📉 Pas sûr que les stats s’en remettent.",
-  "⏩ Ça mérite… une rediffusion en accéléré.",
+  "⏩ Ça mérite… une rediffusion en accéléré. Donc en gros, pas de rediffusion.",
   "🎯 On va dire que l’intention y était.",
   "📊 Un match qui existera, techniquement.",
-  "👥 Les deux joueurs ont participé. C’est déjà ça.",
+  "👥 {winner} et {loser} ont participé. C’est déjà ça.",
   "🫥 On appelle ça une disparition en direct.",
-  "👤 Même l’ombre du joueur a quitté la partie.",
+  "👤 Même l’ombre de {loser} a quitté la partie.",
   "🗑️ C’est plus une défaite, c’est un effacement.",
   "🗜️ Il a été compressé en format zip.",
   "🔍 On cherche encore le respect quelque part sur le terrain.",
-  "📢 Le score parle, et il est violent.",
+  "📢 Le score de {loser} parle, et il est violent.",
   "🏚️ On a assisté à un effondrement contrôlé.",
   "🚫 Le replay sera classé contenu sensible.",
-  "👑 Domination totale, sans appel, sans discussion.",
-  "⚔️ Il a joué, l’autre a subi.",
+  "👑 Domination totale de {winner}, sans appel, sans discussion.",
+  "⚔️ {winner} a joué, {loser} a subi.",
   "📚 Une leçon donnée sans demander la permission.",
-  "💥 C’était rapide, propre… et brutal.",
-  "📦 Le match a été plié, rangé, archivé.",
-  "🎁 Victoire avec option humiliation incluse.",
+  "💥 C’était rapide, propre… et brutal. Merci {winner}!",
+  "📦 Le match a été plié, rangé, archivé! Bien joué {winner}.",
+  "🎁 Victoire de {winner} avec option humiliation incluse pour {loser}.",
   "🧠 Performance chirurgicale.",
   "🔥 Un carnage validé par la meta.",
   "🧪 Les scientifiques étudient encore ce qu’on vient de voir.",
@@ -88,17 +88,17 @@ const clashs = [
   "🎲 Même le RNG n’assume pas.",
   "🧠 On appelle ça une stratégie… audacieuse.",
   "🚪 Les lois de la logique ont quitté le chat.",
-  "🌪️ Un résultat sponsorisé par le chaos.",
+  "🌪️ Un résultat de {loser} sponsorisé par le chaos.",
   "❓ C’était prévu ? Non. Est-ce que ça passe ? Non plus.",
   "🤖 Le script lui-même hésite à valider.",
   "🔌 Il s’est fait débrancher proprement.",
   "🔁 Retour à l’écran titre recommandé.",
   "🕹️ Le bouton ‘retry’ commence à trembler.",
   "🌡️ Ça pique… même à distance.",
-  "🧹 Il va falloir désinstaller la honte.",
+  "🧹 Il va falloir désinstaller la honte pour {loser}.",
   "💀 Le respect a pris un congé maladie.",
-  "🤖 On a vu des bots jouer mieux… parfois.",
-  "💥 Même le spectateur a pris des dégâts.",
+  "🤖 On a vu des bots jouer mieux que {loser}… parfois.",
+  "💥 Même le spectateur a pris des dégâts de la part de {winner}.",
   "🎙️ Je commente, mais je comprends pas tout.",
   "😶 On m’avait pas préparé à ça.",
   "📉 Je suis payé pour analyser… mais là…",
@@ -617,20 +617,25 @@ if (cmd === "concours-teub") {
   let score2 = 0;
 
   const lines = stats.map(stat => {
-    const v1 = p1[stat] || 0;
-    const v2 = p2[stat] || 0;
+  const v1 = p1[stat] || 0;
+  const v2 = p2[stat] || 0;
 
-    let winner = "⚖️";
-    if (v1 > v2) {
-      winner = "🟢";
-      score1++;
-    } else if (v2 > v1) {
-      winner = "🔴";
-      score2++;
-    }
+  let left = `${p1.name}: ${v1}`;
+  let right = `${p2.name}: ${v2}`;
 
-    return `**${stat.toUpperCase()}** → ${p1.name}: ${v1} | ${p2.name}: ${v2} ${winner}`;
-  });
+  if (v1 > v2) {
+    left = `🟢 ${left}`;
+    right = `🔴 ${right}`;
+  } else if (v2 > v1) {
+    left = `🔴 ${left}`;
+    right = `🟢 ${right}`;
+  } else {
+    left = `⚖️ ${left}`;
+    right = `⚖️ ${right}`;
+  }
+
+  return `⚪ **${stat.toUpperCase()}** → ${left} ⚔️ ${right}`;
+});
 
   const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
   const total2 = stats.reduce((acc, s) => acc + (p2[s] || 0), 0);
@@ -667,22 +672,20 @@ if (cmd === "concours-teub") {
 `🟥 **${p1.name}**  VS  🟦 **${p2.name}**
 
 🎮 *Bienvenue dans ce nouveau concours de teub ou les cerveaux s'affrontent!*
-## 🎯 Sortez vos armes ... ATTAQUEZ 
+## 🎯 Sortez vos armes ...
 
-🔴 T1 → ${p1.name}: ${p1.t1} ⚔️ ${p2.name}: ${p2.t1}  
-🔵 T2 → ${p1.name}: ${p1.t2} ⚔️ ${p2.name}: ${p2.t2}  
-🟣 T3 → ${p1.name}: ${p1.t3} ⚔️ ${p2.name}: ${p2.t3}  
-🟡 T4 → ${p1.name}: ${p1.t4} ⚔️ ${p2.name}: ${p2.t4}
+## 🤛READY...FIGHT🤜
 
+${lines.join("\n")}
+
+--- 
 ## 📊 FINAL SCORE
 
 🟥 **${p1.name}** → ${total1} pts  
 🟦 **${p2.name}** → ${total2} pts  
 
 ---
-## 🎯 DÉTAIL DU MATCH
 
-${lines.join("\n")}
 
 ## 🏆 WINNER
 
