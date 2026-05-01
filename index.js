@@ -428,7 +428,9 @@ if (cmd === "searchpalmon") {
   );
 
   const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+  );
 
   const players = json.table.rows.map(r => ({
     pseudo: r.c[0]?.v || "Inconnu",
@@ -436,22 +438,31 @@ if (cmd === "searchpalmon") {
   }));
 
   const results = players.filter(p =>
-    args.every(id =>
-      p.mons.some(m => m.includes(id))
-    )
+    args.every(id => p.mons.some(m => m.includes(id)))
   );
 
   if (!results.length) {
     return interaction.editReply("❌ Aucun résultat");
   }
 
-  // 🔥 FORMAT EXACT VISUEL
+  const formatMon = (m) => {
+    const match = m.match(/^(\d{3})\s*\((.+)\)$/);
+
+    if (!match) return `• 🟡 ${m}`;
+
+    const id = match[1];
+    const names = match[2].split("/");
+
+    return `• 🟡 ${id} [S] (${names.join("/")})`;
+  };
+
   const lines = results.map(p => {
-    const mons = p.mons.map(m => `• 🟡 ${m}`).join("\n");
+    const mons = p.mons.map(formatMon).join("\n");
+
     return `👤 **${p.pseudo}**\n${mons}`;
   });
 
-  // PAGINATION
+  // pagination
   const perPage = 3;
   let page = 0;
   const maxPage = Math.ceil(lines.length / perPage) - 1;
@@ -462,12 +473,12 @@ if (cmd === "searchpalmon") {
 
     return new EmbedBuilder()
       .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
-      .setColor(0xFFD700) // 🔥 JAUNE comme ton screen
+      .setColor(0xFFD700)
       .setDescription(current.join("\n\n"))
       .setFooter({ text: `Page ${page + 1}/${maxPage + 1}` });
   };
 
-  const getRow = () => new ActionRowBuilder().addComponents(
+  const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("prev")
       .setLabel("⬅️")
@@ -483,15 +494,14 @@ if (cmd === "searchpalmon") {
 
   const msg = await interaction.editReply({
     embeds: [generateEmbed()],
-    components: [getRow()]
+    components: [row]
   });
 
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
-    if (i.user.id !== interaction.user.id) {
+    if (i.user.id !== interaction.user.id)
       return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
-    }
 
     if (i.customId === "prev") page--;
     if (i.customId === "next") page++;
@@ -501,7 +511,7 @@ if (cmd === "searchpalmon") {
 
     await i.update({
       embeds: [generateEmbed()],
-      components: [getRow()]
+      components: [row]
     });
   });
 
