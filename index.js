@@ -25,6 +25,11 @@ const getEmoji = (category) => {
   return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
 };
 
+const getName = (attr, lang = "fr") => {
+  if (!attr) return "?";
+  return attr[lang] || attr.fr || attr.en || attr.es || attr.de || "?";
+};
+
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
@@ -515,27 +520,32 @@ if (cmd === "searchpalmon") {
   const players = await getSheetData();
   const attributes = await getAttributesMap();
 
-  const results = players.filter(p =>
-    args.every(id =>
-      p.mons.some(m => String(m).padStart(3, "0").includes(id))
-    )
-  );
+const mons = p.mons.map(m => {
+  const id = String(m).padStart(3, "0");
+  const attr = attributes[id];
 
-  if (!results.length) {
-    return interaction.editReply("❌ Aucun résultat");
+  if (!attr) {
+    return `• ❔ ${id} [inconnu]`;
   }
 
-  const lines = results.map(p => {
+  return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
+}).join("\n");
 
-    const mons = p.mons.map(m => {
-      const id = String(m).padStart(3, "0");
-      const attr = attributes[id];
+ const lines = results.map(p => {
 
-      if (!attr) return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
-    }).join("\n");
+  const mons = p.mons.map(m => {
+    const id = String(m).padStart(3, "0");
+    const attr = attributes[id];
 
-    return `👤 ${p.pseudo}\n${mons}`;
-  });
+    if (!attr) {
+      return `• ❔ ${id} [inconnu]`;
+    }
+
+    return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
+  }).join("\n");
+
+  return `👤 ${p.pseudo}\n${mons}`;
+});
 
   const perPage = 3;
   let page = 0;
