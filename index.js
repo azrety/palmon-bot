@@ -295,23 +295,14 @@ async function getAttributesData() {
   );
 
   // ⚠️ adapte selon ton sheet attributs
-  const attributes = json.table.rows.map(r => ({
-    name: r.c[0]?.v || "Inconnu",
-    data: r.c.slice(1).map(c => c?.v)
-  }));
-
-  ATTR_CACHE = {
-    data: attributes,
-    lastFetch: now
-  };
-
-  return attributes;
-}
-// =========================
-client.once("ready", () => {
-  console.log(`🤖 connecté ${client.user.tag}`);
-  registerCommands();
-});
+ const attributes = json.table.rows.map(r => ({
+  id: String(r.c[0]?.v).trim(),
+  category: r.c[1]?.v,
+  fr: r.c[2]?.v,
+  en: r.c[3]?.v,
+  es: r.c[4]?.v,
+  de: r.c[5]?.v
+}));
 
 // =========================
 // HANDLER SAFE
@@ -511,7 +502,6 @@ if (cmd === "searchpalmon") {
 
   const players = await getSheetData();
 
-  // 🔎 FILTER
   const results = players.filter(p =>
     args.every(id =>
       p.mons.some(m => m.includes(id))
@@ -522,36 +512,25 @@ if (cmd === "searchpalmon") {
     return interaction.editReply("❌ Aucun résultat");
   }
 
-  // =========================
-  // FORMAT LINES (DISPLAY EXACT STYLE)
-  // =========================
-const attributes = await getAttributesData();
+  const attributes = await getAttributesData();
 
-const normalizeId = (v) => String(v).trim(); // ⚠️ IMPORTANT: PAS padStart
+  const lines = results.map(p => {
 
-const lines = results.map(p => {
-  const mons = p.mons.map(m => {
-    const id = normalizeId(m);
+    const mons = p.mons.map(m => {
+      const id = String(m).trim();
 
-    const attr = attributes.find(a =>
-      normalizeId(a.data?.[0]) === id
-    );
+      const attr = attributes.find(a =>
+        a.id === id
+      );
 
-    if (!attr) {
-      return `• 🟡 ${id}`;
-    }
+      if (!attr) return `• 🟡 ${id}`;
 
-    const [idSheet, category, fr, en, es, de] = attr.data || [];
+      return `• 🟡 ${attr.id} [${attr.category || "?"}] (${attr.fr || "?"}/${attr.en || "?"}/${attr.es || "?"}/${attr.de || "?"})`;
+    }).join("\n");
 
-    return `• 🟡 ${idSheet} [${category || "?"}] (${fr || "?"}/${en || "?"}/${es || "?"}/${de || "?"})`;
-  }).join("\n");
+    return `👤 ${p.pseudo}\n${mons}`;
+  });
 
-  return `👤 ${p.pseudo}\n${mons}`;
-});
-
-  // =========================
-  // PAGINATION
-  // =========================
   const perPage = 3;
   let page = 0;
   const maxPage = Math.ceil(lines.length / perPage) - 1;
@@ -560,7 +539,6 @@ const lines = results.map(p => {
     const start = page * perPage;
     const current = lines.slice(start, start + perPage);
 
-    // 🔥 HEADER STYLE EXACT DEMANDE
     return new EmbedBuilder()
       .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
       .setColor(0xFFD700)
@@ -587,9 +565,7 @@ const lines = results.map(p => {
     components: [row]
   });
 
-  const collector = msg.createMessageComponentCollector({
-    time: 60000
-  });
+  const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
     if (i.user.id !== interaction.user.id) {
