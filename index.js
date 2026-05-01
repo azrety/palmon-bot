@@ -17,6 +17,10 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
 const SHEET_API = process.env.SHEET_API;
 
+const ATTR_GID = process.env.ATTR_GID // "1049184729" GID de la feuille "attributs" (modifiable dans .env)
+
+
+
 const GUILD_ID = "1491506781245931563";
 
 const client = new Client({
@@ -265,6 +269,44 @@ async function getSheetData() {
 
   return players;
 }
+
+let ATTR_CACHE = {
+  data: null,
+  lastFetch: 0
+};
+
+const ATTR_CACHE_TTL = 60 * 1000;
+
+async function getAttributesData() {
+  const now = Date.now();
+
+  if (ATTR_CACHE.data && (now - ATTR_CACHE.lastFetch < ATTR_CACHE_TTL)) {
+    return ATTR_CACHE.data;
+  }
+
+  const res = await fetch(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${ATTR_GID}`
+  );
+
+  const text = await res.text();
+
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+  );
+
+  // ⚠️ adapte selon ton sheet attributs
+  const attributes = json.table.rows.map(r => ({
+    name: r.c[0]?.v || "Inconnu",
+    data: r.c.slice(1).map(c => c?.v)
+  }));
+
+  ATTR_CACHE = {
+    data: attributes,
+    lastFetch: now
+  };
+
+  return attributes;
+}
 // =========================
 client.once("ready", () => {
   console.log(`🤖 connecté ${client.user.tag}`);
@@ -456,6 +498,9 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     // =========================
     // SEARCH PALMON
     // =========================
+// =========================
+// SEARCH PALMON
+// =========================
 if (cmd === "searchpalmon") {
   await interaction.deferReply();
 
@@ -466,21 +511,31 @@ if (cmd === "searchpalmon") {
 
   const players = await getSheetData();
 
+  // 🔎 FILTER
   const results = players.filter(p =>
-    args.every(id => p.mons.some(m => m.includes(id)))
+    args.every(id =>
+      p.mons.some(m => m.includes(id))
+    )
   );
 
   if (!results.length) {
     return interaction.editReply("❌ Aucun résultat");
   }
 
+  // =========================
+  // FORMAT LINES (DISPLAY EXACT STYLE)
+  // =========================
   const lines = results.map(p => {
-    const mons = p.mons.map(m => `• 🟡 ${m}`).join("\n");
+    const mons = p.mons
+      .map(m => `• 🟡 ${m}`)
+      .join("\n");
 
     return `👤 **${p.pseudo}**\n${mons}`;
   });
 
-  // pagination
+  // =========================
+  // PAGINATION
+  // =========================
   const perPage = 3;
   let page = 0;
   const maxPage = Math.ceil(lines.length / perPage) - 1;
@@ -489,6 +544,7 @@ if (cmd === "searchpalmon") {
     const start = page * perPage;
     const current = lines.slice(start, start + perPage);
 
+    // 🔥 HEADER STYLE EXACT DEMANDE
     return new EmbedBuilder()
       .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
       .setColor(0xFFD700)
@@ -515,11 +571,14 @@ if (cmd === "searchpalmon") {
     components: [row]
   });
 
-  const collector = msg.createMessageComponentCollector({ time: 60000 });
+  const collector = msg.createMessageComponentCollector({
+    time: 60000
+  });
 
   collector.on("collect", async (i) => {
-    if (i.user.id !== interaction.user.id)
+    if (i.user.id !== interaction.user.id) {
       return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
+    }
 
     if (i.customId === "prev") page--;
     if (i.customId === "next") page++;
@@ -537,7 +596,6 @@ if (cmd === "searchpalmon") {
     msg.edit({ components: [] });
   });
 }
-
 // =========================
 // TOP
 // =========================
