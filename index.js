@@ -474,11 +474,6 @@ if (cmd === "searchpalmon") {
     return interaction.editReply("❌ Aucun résultat");
   }
 
-  const lines = results.map(p => {
-    const mons = p.mons.map(m => `• 🟡 ${m}`).join("\n");
-
-    return `👤 **${p.pseudo}**\n${mons}`;
-  });
     const lines = results.map(p => {
       const mons = p.mons.map(formatMon).join("\n");
 
