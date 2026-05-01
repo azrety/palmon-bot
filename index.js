@@ -292,7 +292,7 @@ async function getAttributesMap() {
   }
 
   const res = await fetch(
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${ATTR_GID}`
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID_ATTR}`
   );
 
   const text = await res.text();
