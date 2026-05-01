@@ -525,19 +525,32 @@ if (cmd === "searchpalmon") {
   // =========================
   // FORMAT LINES (DISPLAY EXACT STYLE)
   // =========================
- const attributes = await getAttributesData();
+const attributes = await getAttributesData();
+
+const normalizeId = (v) =>
+  String(v)
+    .replace(/\D/g, "")   // enlève tout sauf chiffres
+    .padStart(3, "0");
+
 const lines = results.map(p => {
   const mons = p.mons.map(m => {
-    const id = String(m).padStart(3, "0");
+    const id = normalizeId(m);
 
-    // 🔎 cherche dans la sheet attributs
     const attr = attributes.find(a =>
-      String(a.data?.[0]).padStart(3, "0") === id
+      normalizeId(a.data?.[0]) === id
     );
 
     if (!attr) {
       return `• 🟡 ${id}`;
     }
+
+    const [nameFR, nameEN, nameES, nameDE, rank] = attr.data || [];
+
+    return `• 🟡 ${id} [${rank || "?"}] (${nameFR || "?"}/${nameEN || "?"}/${nameES || "?"}/${nameDE || "?"})`;
+  }).join("\n");
+
+  return `👤 ${p.pseudo}\n${mons}`;
+});
 
     const [nameFR, nameEN, nameES, nameDE, rank] = attr.data || [];
 
