@@ -30,13 +30,13 @@ const clashs = [
   "🤨 Ca passe mais sans éclat",
   "📉 Niveau pas ouf aujourd’hui.",
   "⚖️ Match neutre, sans émotion.",
-  "💀 HUMILIATION TOTALE.",
+  "💀 HUMILIATION TOTALE pour {loser}",
   "💀 Humiliation publique validée",
   "☠️ Catastrophique… on en parle plus.",
   "☠️ Niveau catastrophique... vraiment insupportable à regarder.",
-  "🤡 T’as juste servi de sparring.",
-  "🤡 Tu t'es fait écraser sans résistance",
-  "🚮 Direction la poubelle des stats",
+  "🤡 {loser} a juste servi de sparring.",
+  "🤡 {loser} s'est fait écraser sans résistance",
+  "🚮 {loser} direction la poubelle des stats !",
   "🪦 Ce joueur a quitté le jeu mentalement",
   "🔥 C’était un carnage sans défense.",
   "🏆 Victoire écrasante. Y a même pas eu match.",
@@ -58,7 +58,54 @@ const clashs = [
   "🧾 Résultat validé par un expert totalement impartial (moi).",
   "🎁 Le gagnant repart avec la gloire, le perdant avec… rien.",
   "💥 Tentative intéressante. Résultat catastrophique.",
-  "🎟️ Le public demande un remboursement."
+  "🎟️ Le public demande un remboursement.",
+  "😐 On a vu pire… mais pas aujourd’hui.",
+  "🤨 C’était… quelque chose.",
+  "😬 Le public reste partagé. Surtout entre rire et pleurer.",
+  "📉 Pas sûr que les stats s’en remettent.",
+  "⏩ Ça mérite… une rediffusion en accéléré.",
+  "🎯 On va dire que l’intention y était.",
+  "📊 Un match qui existera, techniquement.",
+  "👥 Les deux joueurs ont participé. C’est déjà ça.",
+  "🫥 On appelle ça une disparition en direct.",
+  "👤 Même l’ombre du joueur a quitté la partie.",
+  "🗑️ C’est plus une défaite, c’est un effacement.",
+  "🗜️ Il a été compressé en format zip.",
+  "🔍 On cherche encore le respect quelque part sur le terrain.",
+  "📢 Le score parle, et il est violent.",
+  "🏚️ On a assisté à un effondrement contrôlé.",
+  "🚫 Le replay sera classé contenu sensible.",
+  "👑 Domination totale, sans appel, sans discussion.",
+  "⚔️ Il a joué, l’autre a subi.",
+  "📚 Une leçon donnée sans demander la permission.",
+  "💥 C’était rapide, propre… et brutal.",
+  "📦 Le match a été plié, rangé, archivé.",
+  "🎁 Victoire avec option humiliation incluse.",
+  "🧠 Performance chirurgicale.",
+  "🔥 Un carnage validé par la meta.",
+  "🧪 Les scientifiques étudient encore ce qu’on vient de voir.",
+  "🌀 Un moment qui restera dans… quelque chose.",
+  "🎲 Même le RNG n’assume pas.",
+  "🧠 On appelle ça une stratégie… audacieuse.",
+  "🚪 Les lois de la logique ont quitté le chat.",
+  "🌪️ Un résultat sponsorisé par le chaos.",
+  "❓ C’était prévu ? Non. Est-ce que ça passe ? Non plus.",
+  "🤖 Le script lui-même hésite à valider.",
+  "🔌 Il s’est fait débrancher proprement.",
+  "🔁 Retour à l’écran titre recommandé.",
+  "🕹️ Le bouton ‘retry’ commence à trembler.",
+  "🌡️ Ça pique… même à distance.",
+  "🧹 Il va falloir désinstaller la honte.",
+  "💀 Le respect a pris un congé maladie.",
+  "🤖 On a vu des bots jouer mieux… parfois.",
+  "💥 Même le spectateur a pris des dégâts.",
+  "🎙️ Je commente, mais je comprends pas tout.",
+  "😶 On m’avait pas préparé à ça.",
+  "📉 Je suis payé pour analyser… mais là…",
+  "🎭 On va faire comme si c’était normal.",
+  "❌ Analyse en cours… erreur 404.",
+  "👏 Je vais faire semblant d’être impressionné.",
+  "🔇 On coupe le micro ? Non ? Bon…"
   
 ];
 // =========================
@@ -587,25 +634,39 @@ if (cmd === "concours-teub") {
 
   const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
   const total2 = stats.reduce((acc, s) => acc + (p2[s] || 0), 0);
-  const randomClash = clashs[Math.floor(Math.random() * clashs.length)];
+  const rawClash = clashs[Math.floor(Math.random() * clashs.length)];
 
-const winnerName =
+  const winnerDynamic =
+    total1 > total2 ? p1.name :
+    total2 > total1 ? p2.name :
+    null;
+
+  const loserDynamic =
+    total1 > total2 ? p2.name :
+    total2 > total1 ? p1.name :
+    null;
+
+  const finalClash = rawClash
+    .replace("{winner}", winnerNameDynamic ?? "personne")
+    .replace("{loser}", loserNameDynamic ?? "personne");
+
+  const winnerName =
   total1 > total2 ? p1.name :
   total2 > total1 ? p2.name :
   "ÉGALITÉ PARFAITE";
 
-const winnerEmoji =
-  total1 > total2 ? "🟥" :
-  total2 > total1 ? "🟦" :
-  "⚖️";
+  const winnerEmoji =
+    total1 > total2 ? "🟥" :
+    total2 > total1 ? "🟦" :
+    "⚖️";
 
-const embed = new EmbedBuilder()
-  .setTitle("⚔️ ARENA MATCH : CONCOURS DE TEUB")
-  .setColor(0xFF00FF)
-  .setDescription(
+  const embed = new EmbedBuilder()
+    .setTitle("⚔️ ARENA MATCH : CONCOURS DE TEUB")
+    .setColor(0xFF00FF)
+    .setDescription(
 `🟥 **${p1.name}**  VS  🟦 **${p2.name}**
 
-🎮 *Bienvenue dans ce nouveau concours de teub ou les cerveaux s'affrontent!"
+🎮 *Bienvenue dans ce nouveau concours de teub ou les cerveaux s'affrontent!*
 ## 🎯 Sortez vos armes ... ATTAQUEZ 
 
 🔴 T1 → ${p1.name}: ${p1.t1} ⚔️ ${p2.name}: ${p2.t1}  
@@ -619,13 +680,16 @@ const embed = new EmbedBuilder()
 🟦 **${p2.name}** → ${total2} pts  
 
 ---
+## 🎯 DÉTAIL DU MATCH
+
+${lines.join("\n")}
 
 ## 🏆 WINNER
 
 ${winnerEmoji} **${winnerName}**
 
 ## 🎙️ LIVE COMMENTATOR
-💬 *${randomClash}*
+💬 *${finalClash}*
 
 📡 *“Ce match vient d’entrer dans les annales du serveur…”*
 `
