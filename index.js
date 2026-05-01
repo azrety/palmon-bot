@@ -19,9 +19,11 @@ const SHEET_API = process.env.SHEET_API;
 
 const ATTR_GID = process.env.ATTR_GID // "1049184729" GID de la feuille "attributs" (modifiable dans .env)
 
-
-
 const GUILD_ID = "1491506781245931563";
+
+const getEmoji = (category) => {
+  return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
+};
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
@@ -529,9 +531,7 @@ if (cmd === "searchpalmon") {
       const id = String(m).padStart(3, "0");
       const attr = attributes[id];
 
-      if (!attr) return `• 🟡 ${id}`;
-
-      return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
+      if (!attr) return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
     }).join("\n");
 
     return `👤 ${p.pseudo}\n${mons}`;
