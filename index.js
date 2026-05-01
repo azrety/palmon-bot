@@ -17,8 +17,8 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const SHEET_ID = process.env.SHEET_ID;
 const SHEET_API = process.env.SHEET_API;
 
-const ATTR_GID = process.env.ATTR_GID // "1049184729" GID de la feuille "attributs" (modifiable dans .env)
-
+const GID_PLAYERS = process.env.GID_PLAYERS; // 307583676
+const GID_ATTR = process.env.GID_ATTR; // 1049184729;
 const GUILD_ID = "1491506781245931563";
 
 const getEmoji = (category) => {
@@ -520,49 +520,44 @@ if (cmd === "searchpalmon") {
   const players = await getSheetData();
   const attributes = await getAttributesMap();
 
-const mons = p.mons.map(m => {
-  const id = String(m).padStart(3, "0");
-  const attr = attributes[id];
+  const results = players.filter(p =>
+    args.every(id => p.mons.includes(id))
+  );
 
-  if (!attr) {
-    return `• ❔ ${id} [inconnu]`;
+  if (!results.length) {
+    return interaction.editReply("❌ Aucun résultat");
   }
 
-  return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
-}).join("\n");
+  const formatMons = (p) => {
+    return p.mons.map(m => {
+      const id = String(m).padStart(3, "0");
+      const attr = attributes[id];
 
- const lines = results.map(p => {
+      if (!attr) return `• ❔ ${id} [inconnu]`;
 
-  const mons = p.mons.map(m => {
-    const id = String(m).padStart(3, "0");
-    const attr = attributes[id];
+      return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
+    }).join("\n");
+  };
 
-    if (!attr) {
-      return `• ❔ ${id} [inconnu]`;
-    }
-
-    return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
-  }).join("\n");
-
-  return `👤 ${p.pseudo}\n${mons}`;
-});
+  const lines = results.map(p =>
+    `👤 **${p.pseudo}**\n${formatMons(p)}`
+  );
 
   const perPage = 3;
   let page = 0;
   const maxPage = Math.ceil(lines.length / perPage) - 1;
 
   const generateEmbed = () => {
-    const start = page * perPage;
-    const current = lines.slice(start, start + perPage);
+    const slice = lines.slice(page * perPage, (page + 1) * perPage);
 
     return new EmbedBuilder()
       .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
       .setColor(0xFFD700)
-      .setDescription(current.join("\n\n"))
+      .setDescription(slice.join("\n\n"))
       .setFooter({ text: `Page ${page + 1}/${maxPage + 1}` });
   };
 
-  const row = new ActionRowBuilder().addComponents(
+  const row = () => new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("prev")
       .setLabel("⬅️")
@@ -578,7 +573,7 @@ const mons = p.mons.map(m => {
 
   const msg = await interaction.editReply({
     embeds: [generateEmbed()],
-    components: [row]
+    components: [row()]
   });
 
   const collector = msg.createMessageComponentCollector({ time: 60000 });
@@ -595,7 +590,7 @@ const mons = p.mons.map(m => {
 
     await i.update({
       embeds: [generateEmbed()],
-      components: [row]
+      components: [row()]
     });
   });
 
