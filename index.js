@@ -295,7 +295,7 @@ async function getAttributesData() {
   );
 
   // ⚠️ adapte selon ton sheet attributs
- const attributes = json.table.rows.map(r => ({
+const attributes = json.table.rows.map(r => ({
   id: String(r.c[0]?.v).trim(),
   category: r.c[1]?.v,
   fr: r.c[2]?.v,
@@ -303,6 +303,14 @@ async function getAttributesData() {
   es: r.c[4]?.v,
   de: r.c[5]?.v
 }));
+
+ATTR_CACHE = {
+  data: attributes,
+  lastFetch: now
+};
+
+return attributes;
+}
 
 // =========================
 // HANDLER SAFE
