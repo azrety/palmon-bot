@@ -19,7 +19,7 @@ const SHEET_API = process.env.SHEET_API;
 
 const GID_PLAYERS = process.env.GID_PLAYERS; // 307583676
 const GID_ATTR = process.env.GID_ATTR; // 1049184729;
-const GUILD_ID = "1491506781245931563";
+const GUILD_ID = process.env.GUILD_ID; //1491506781245931563
 
 const getEmoji = (category) => {
   return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
@@ -126,7 +126,6 @@ let SHEET_CACHE = {
 };
 
 const CACHE_TTL = 60 * 1000; // 60 secondes
-console.log("TOKEN =", TOKEN);
 // =========================
 // REGISTER COMMANDS
 // =========================
@@ -806,9 +805,15 @@ ${winnerEmoji} **${winnerName}**
           return interaction.editReply("❌ erreur serveur");
       }
     });
+
+    client.once("ready", async () => {
+  console.log("Bot ready");
+  await registerCommands();
+});
 console.log("🚀 Bot start...");
 console.log("TOKEN exists:", !!TOKEN);
+console.log("Bot ready !");
+
 client.login(TOKEN)
   .then(() => console.log("✅ Connecté à Discord"))
   .catch(err => console.error("❌ Login error:", err));
-client.login(TOKEN);
