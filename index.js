@@ -108,6 +108,14 @@ const clashs = [
   "🔇 On coupe le micro ? Non ? Bon…"
   
 ];
+// CACHE// (pour éviter de spammer l’API à chaque interaction)
+let SHEET_CACHE = {
+  data: null,
+  lastFetch: 0
+};
+
+const CACHE_TTL = 60 * 1000; // 60 secondes
+
 // =========================
 // REGISTER COMMANDS
 // =========================
@@ -223,7 +231,40 @@ async function registerCommands() {
 
   console.log("✅ Commands OK");
 }
+// =========================
+// FETCH SHEET DATA WITH CACHE
+// =========================
+async function getSheetData() {
+  const now = Date.now();
 
+  // ✅ cache encore valide
+  if (SHEET_CACHE.data && (now - SHEET_CACHE.lastFetch < CACHE_TTL)) {
+    return SHEET_CACHE.data;
+  }
+
+  // ❌ sinon refresh API
+  const res = await fetch(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=307583676`
+  );
+
+  const text = await res.text();
+
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+  );
+
+  const players = json.table.rows.map(r => ({
+    pseudo: r.c[0]?.v || "Inconnu",
+    mons: [r.c[1]?.v, r.c[2]?.v, r.c[3]?.v, r.c[4]?.v].filter(Boolean)
+  }));
+
+  SHEET_CACHE = {
+    data: players,
+    lastFetch: now
+  };
+
+  return players;
+}
 // =========================
 client.once("ready", () => {
   console.log(`🤖 connecté ${client.user.tag}`);
@@ -413,7 +454,7 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
   }
 
     // =========================
-    // SEARCH PALMON (UNCHANGED)
+    // SEARCH PALMON
     // =========================
 if (cmd === "searchpalmon") {
   await interaction.deferReply();
@@ -423,19 +464,7 @@ if (cmd === "searchpalmon") {
     .split(/\s+/)
     .map(id => id.padStart(3, "0"));
 
-  const res = await fetch(
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=307583676`
-  );
-
-  const text = await res.text();
-  const json = JSON.parse(
-    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-  );
-
-  const players = json.table.rows.map(r => ({
-    pseudo: r.c[0]?.v || "Inconnu",
-    mons: [r.c[1]?.v, r.c[2]?.v, r.c[3]?.v, r.c[4]?.v].filter(Boolean)
-  }));
+  const players = await getSheetData();
 
   const results = players.filter(p =>
     args.every(id => p.mons.some(m => m.includes(id)))
@@ -445,22 +474,16 @@ if (cmd === "searchpalmon") {
     return interaction.editReply("❌ Aucun résultat");
   }
 
-  const formatMon = (m) => {
-    const match = m.match(/^(\d{3})\s*\((.+)\)$/);
-
-    if (!match) return `• 🟡 ${m}`;
-
-    const id = match[1];
-    const names = match[2].split("/");
-
-    return `• 🟡 ${id} [S] (${names.join("/")})`;
-  };
-
   const lines = results.map(p => {
-    const mons = p.mons.map(formatMon).join("\n");
+    const mons = p.mons.map(m => `• 🟡 ${m}`).join("\n");
 
     return `👤 **${p.pseudo}**\n${mons}`;
   });
+    const lines = results.map(p => {
+      const mons = p.mons.map(formatMon).join("\n");
+
+      return `👤 **${p.pseudo}**\n${mons}`;
+    });
 
   // pagination
   const perPage = 3;
