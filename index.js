@@ -640,16 +640,12 @@ if (cmd === "concours-teub") {
 ##* 🤛READY...FIGHT🤜*
 
 ${lines.join("\n")}
-
 --- 
 ## 📊 FINAL SCORE
 
 🟥 **${p1.name}** → ${total1} pts  
 🟦 **${p2.name}** → ${total2} pts  
-
 ---
-
-
 ## 🏆 WINNER
 
 ${winnerEmoji} **${winnerName}**
