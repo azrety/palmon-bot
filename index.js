@@ -497,9 +497,6 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     // =========================
     // SEARCH PALMON
     // =========================
-// =========================
-// SEARCH PALMON
-// =========================
 if (cmd === "searchpalmon") {
   await interaction.deferReply();
 
@@ -509,10 +506,11 @@ if (cmd === "searchpalmon") {
     .map(id => id.padStart(3, "0"));
 
   const players = await getSheetData();
+  const attributes = await getAttributesData();
 
   const results = players.filter(p =>
     args.every(id =>
-      p.mons.some(m => m.includes(id))
+      p.mons.some(m => String(m).includes(id))
     )
   );
 
@@ -520,16 +518,12 @@ if (cmd === "searchpalmon") {
     return interaction.editReply("❌ Aucun résultat");
   }
 
-  const attributes = await getAttributesData();
-
   const lines = results.map(p => {
 
     const mons = p.mons.map(m => {
       const id = String(m).trim();
 
-      const attr = attributes.find(a =>
-        a.id === id
-      );
+      const attr = attributes.find(a => a.id === id);
 
       if (!attr) return `• 🟡 ${id}`;
 
@@ -593,7 +587,7 @@ if (cmd === "searchpalmon") {
   });
 
   collector.on("end", () => {
-    msg.edit({ components: [] });
+    interaction.editReply({ components: [] }).catch(() => {});
   });
 }
 // =========================
