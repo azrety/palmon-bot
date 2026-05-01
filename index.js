@@ -271,17 +271,17 @@ async function getSheetData() {
 }
 
 let ATTR_CACHE = {
-  data: null,
+  map: null,
   lastFetch: 0
 };
 
 const ATTR_CACHE_TTL = 60 * 1000;
 
-async function getAttributesData() {
+async function getAttributesMap() {
   const now = Date.now();
 
-  if (ATTR_CACHE.data && (now - ATTR_CACHE.lastFetch < ATTR_CACHE_TTL)) {
-    return ATTR_CACHE.data;
+  if (ATTR_CACHE.map && (now - ATTR_CACHE.lastFetch < ATTR_CACHE_TTL)) {
+    return ATTR_CACHE.map;
   }
 
   const res = await fetch(
@@ -294,22 +294,27 @@ async function getAttributesData() {
     text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
   );
 
-  // ⚠️ adapte selon ton sheet attributs
-const attributes = json.table.rows.map(r => ({
-  id: String(r.c[0]?.v).trim(),
-  category: r.c[1]?.v,
-  fr: r.c[2]?.v,
-  en: r.c[3]?.v,
-  es: r.c[4]?.v,
-  de: r.c[5]?.v
-}));
+  const map = {};
 
-ATTR_CACHE = {
-  data: attributes,
-  lastFetch: now
-};
+  json.table.rows.forEach(r => {
+    const id = String(r.c[0]?.v).trim().padStart(3, "0");
 
-return attributes;
+    map[id] = {
+      id,
+      category: r.c[1]?.v || "?",
+      fr: r.c[2]?.v || "?",
+      en: r.c[3]?.v || "?",
+      es: r.c[4]?.v || "?",
+      de: r.c[5]?.v || "?"
+    };
+  });
+
+  ATTR_CACHE = {
+    map,
+    lastFetch: now
+  };
+
+  return map;
 }
 
 // =========================
@@ -506,11 +511,11 @@ if (cmd === "searchpalmon") {
     .map(id => id.padStart(3, "0"));
 
   const players = await getSheetData();
-  const attributes = await getAttributesData();
+  const attributes = await getAttributesMap();
 
   const results = players.filter(p =>
     args.every(id =>
-      p.mons.some(m => String(m).includes(id))
+      p.mons.some(m => String(m).padStart(3, "0").includes(id))
     )
   );
 
@@ -521,13 +526,12 @@ if (cmd === "searchpalmon") {
   const lines = results.map(p => {
 
     const mons = p.mons.map(m => {
-      const id = String(m).trim();
-
-      const attr = attributes.find(a => a.id === id);
+      const id = String(m).padStart(3, "0");
+      const attr = attributes[id];
 
       if (!attr) return `• 🟡 ${id}`;
 
-      return `• 🟡 ${attr.id} [${attr.category || "?"}] (${attr.fr || "?"}/${attr.en || "?"}/${attr.es || "?"}/${attr.de || "?"})`;
+      return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
     }).join("\n");
 
     return `👤 ${p.pseudo}\n${mons}`;
@@ -570,9 +574,8 @@ if (cmd === "searchpalmon") {
   const collector = msg.createMessageComponentCollector({ time: 60000 });
 
   collector.on("collect", async (i) => {
-    if (i.user.id !== interaction.user.id) {
+    if (i.user.id !== interaction.user.id)
       return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
-    }
 
     if (i.customId === "prev") page--;
     if (i.customId === "next") page++;
