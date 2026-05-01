@@ -126,7 +126,7 @@ let SHEET_CACHE = {
 };
 
 const CACHE_TTL = 60 * 1000; // 60 secondes
-
+console.log("TOKEN =", TOKEN);
 // =========================
 // REGISTER COMMANDS
 // =========================
@@ -300,7 +300,10 @@ async function getAttributesMap() {
   const json = JSON.parse(
     text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
   );
-
+//  DEBUG ATTRIBUTES//
+json.table.rows.forEach(r => {
+  console.log(r.c.map(c => c?.v));
+});
   const map = {};
 
   json.table.rows.forEach(r => {
@@ -803,5 +806,9 @@ ${winnerEmoji} **${winnerName}**
           return interaction.editReply("❌ erreur serveur");
       }
     });
-
+console.log("🚀 Bot start...");
+console.log("TOKEN exists:", !!TOKEN);
+client.login(TOKEN)
+  .then(() => console.log("✅ Connecté à Discord"))
+  .catch(err => console.error("❌ Login error:", err));
 client.login(TOKEN);
