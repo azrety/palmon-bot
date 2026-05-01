@@ -647,8 +647,8 @@ if (cmd === "concours-teub") {
     null;
 
   const finalClash = rawClash
-    .replace("{winner}", winnerNameDynamic ?? "personne")
-    .replace("{loser}", loserNameDynamic ?? "personne");
+    .replace("{winner}", winnerDynamic ?? "personne")
+    .replace("{loser}", loserDynamic ?? "personne");
 
   const winnerName =
   total1 > total2 ? p1.name :
