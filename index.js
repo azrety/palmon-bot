@@ -415,67 +415,100 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     // =========================
     // SEARCH PALMON (UNCHANGED)
     // =========================
-if (interaction.commandName === "searchpalmon") {
+if (cmd === "searchpalmon") {
+  await interaction.deferReply();
 
-    await interaction.deferReply();
+  const args = interaction.options.getString("id")
+    .trim()
+    .split(/\s+/)
+    .map(id => id.padStart(3, "0"));
 
-    const args = interaction.options.getString("id")
-      .trim()
-      .split(/\s+/)
-      .map(id => id.padStart(3, "0"));
+  const res = await fetch(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=307583676`
+  );
 
-    const { results, attrMap, formatAttr } = await runSearch(args);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
 
-    if (!results.length) {
-      return interaction.editReply("❌ Aucun résultat");
-    }
+  const players = json.table.rows.map(r => ({
+    pseudo: r.c[0]?.v || "Inconnu",
+    mons: [r.c[1]?.v, r.c[2]?.v, r.c[3]?.v, r.c[4]?.v].filter(Boolean)
+  }));
 
-    const pageSize = 5;
-    let page = 0;
-    const totalPages = Math.ceil(results.length / pageSize);
+  const results = players.filter(p =>
+    args.every(id =>
+      p.mons.some(m => m.includes(id))
+    )
+  );
 
-    const generateEmbed = () => {
-      const slice = results.slice(page * pageSize, (page + 1) * pageSize);
-
-      return new EmbedBuilder()
-        .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
-        .setColor(getColor(slice[0].ids, attrMap))
-        .setDescription(
-          slice.map(p =>
-            `👤 **${p.pseudo}**
-${p.ids.map(id => `• ${formatAttr(id)}`).join("\n")}`
-          ).join("\n\n")
-        )
-        .setFooter({ text: `Page ${page + 1}/${totalPages}` });
-    };
-
-    const getButtons = () =>
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("prev").setLabel("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-        new ButtonBuilder().setCustomId("next").setLabel("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page === totalPages - 1)
-      );
-
-    const msg = await interaction.editReply({
-      embeds: [generateEmbed()],
-      components: [getButtons()]
-    });
-
-    const collector = msg.createMessageComponentCollector({ time: 60000 });
-
-    collector.on("collect", async (i) => {
-      if (i.user.id !== interaction.user.id)
-        return i.reply({ content: "❌ Pas ta commande", ephemeral: true });
-
-      if (i.customId === "prev") page--;
-      if (i.customId === "next") page++;
-
-      await i.update({
-        embeds: [generateEmbed()],
-        components: [getButtons()]
-      });
-    });
+  if (!results.length) {
+    return interaction.editReply("❌ Aucun résultat");
   }
 
+  // 🔥 FORMAT EXACT VISUEL
+  const lines = results.map(p => {
+    const mons = p.mons.map(m => `• 🟡 ${m}`).join("\n");
+    return `👤 **${p.pseudo}**\n${mons}`;
+  });
+
+  // PAGINATION
+  const perPage = 3;
+  let page = 0;
+  const maxPage = Math.ceil(lines.length / perPage) - 1;
+
+  const generateEmbed = () => {
+    const start = page * perPage;
+    const current = lines.slice(start, start + perPage);
+
+    return new EmbedBuilder()
+      .setTitle(`🔎 ${args.join(" ")} (${results.length} résultats)`)
+      .setColor(0xFFD700) // 🔥 JAUNE comme ton screen
+      .setDescription(current.join("\n\n"))
+      .setFooter({ text: `Page ${page + 1}/${maxPage + 1}` });
+  };
+
+  const getRow = () => new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("prev")
+      .setLabel("⬅️")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 0),
+
+    new ButtonBuilder()
+      .setCustomId("next")
+      .setLabel("➡️")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === maxPage)
+  );
+
+  const msg = await interaction.editReply({
+    embeds: [generateEmbed()],
+    components: [getRow()]
+  });
+
+  const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+  collector.on("collect", async (i) => {
+    if (i.user.id !== interaction.user.id) {
+      return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
+    }
+
+    if (i.customId === "prev") page--;
+    if (i.customId === "next") page++;
+
+    if (page < 0) page = 0;
+    if (page > maxPage) page = maxPage;
+
+    await i.update({
+      embeds: [generateEmbed()],
+      components: [getRow()]
+    });
+  });
+
+  collector.on("end", () => {
+    msg.edit({ components: [] });
+  });
+}
 
 // =========================
 // TOP
