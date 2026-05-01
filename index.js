@@ -527,10 +527,7 @@ if (cmd === "searchpalmon") {
   // =========================
 const attributes = await getAttributesData();
 
-const normalizeId = (v) =>
-  String(v)
-    .replace(/\D/g, "")   // enlève tout sauf chiffres
-    .padStart(3, "0");
+const normalizeId = (v) => String(v).trim(); // ⚠️ IMPORTANT: PAS padStart
 
 const lines = results.map(p => {
   const mons = p.mons.map(m => {
@@ -544,17 +541,9 @@ const lines = results.map(p => {
       return `• 🟡 ${id}`;
     }
 
-    const [nameFR, nameEN, nameES, nameDE, rank] = attr.data || [];
+    const [idSheet, category, fr, en, es, de] = attr.data || [];
 
-    return `• 🟡 ${id} [${rank || "?"}] (${nameFR || "?"}/${nameEN || "?"}/${nameES || "?"}/${nameDE || "?"})`;
-  }).join("\n");
-
-  return `👤 ${p.pseudo}\n${mons}`;
-});
-
-    const [nameFR, nameEN, nameES, nameDE, rank] = attr.data || [];
-
-    return `• 🟡 ${id} [${rank || "?"}] (${nameFR || "?"}/${nameEN || "?"}/${nameES || "?"}/${nameDE || "?"})`;
+    return `• 🟡 ${idSheet} [${category || "?"}] (${fr || "?"}/${en || "?"}/${es || "?"}/${de || "?"})`;
   }).join("\n");
 
   return `👤 ${p.pseudo}\n${mons}`;
