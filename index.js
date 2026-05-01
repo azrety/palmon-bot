@@ -124,25 +124,6 @@ async function registerCommands() {
           .setRequired(true)
       ),
 
-//  CREATE EVENT//
-    new SlashCommandBuilder()
-      .setName('event')
-      .setDescription('Créer un événement')
-      .addStringOption(o =>
-        o.setName('nom')
-          .setDescription('Nom de l\'event')
-          .setRequired(true)
-      )
-      .addStringOption(o =>
-        o.setName('heure')
-          .setDescription('Heure format HH:MM')
-          .setRequired(true)
-      )
-      .addIntegerOption(o =>
-        o.setName('rappel')
-          .setDescription('Rappel en minutes')
-          .setRequired(false)
-    ),
 
 //ADD PLAYER//
     new SlashCommandBuilder()
@@ -479,24 +460,6 @@ ${p.ids.join(" ")}`
       return interaction.editReply({ embeds: [embed] });
     }
 
-    // =========================
-    // EVENT 
-    // =========================
-    if (cmd === "event") {
-      const nom = interaction.options.getString("nom");
-      const heure = interaction.options.getString("heure");
-
-      const [h, m] = heure.split(":").map(Number);
-
-      const now = DateTime.now().setZone("Europe/Paris");
-      let target = now.set({ hour: h, minute: m, second: 0 });
-
-      if (target < now) target = target.plus({ days: 1 });
-
-      const ts = Math.floor(target.toSeconds());
-
-      return interaction.reply(`📅 ${nom}\n<t:${ts}:F>\n<t:${ts}:R>`);
-    }
 // =========================
 // TOP
 // =========================
@@ -634,7 +597,7 @@ if (cmd === "concours-teub") {
     right = `⚖️ ${right}`;
   }
 
-  return `⚪ **${stat.toUpperCase()}** → ${left} ⚔️ ${right}`;
+  return `• **${stat.toUpperCase()}** → ${left} ⚔️ ${right}`;
 });
 
   const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
@@ -671,10 +634,10 @@ if (cmd === "concours-teub") {
     .setDescription(
 `🟥 **${p1.name}**  VS  🟦 **${p2.name}**
 
-🎮 *Bienvenue dans ce nouveau concours de teub ou les cerveaux s'affrontent!*
+🎮 *Bienvenue dans ce nouveau concours de teub où les cerveaux s'affrontent!*
 ## 🎯 Sortez vos armes ...
 
-## 🤛READY...FIGHT🤜
+##* 🤛READY...FIGHT🤜*
 
 ${lines.join("\n")}
 
