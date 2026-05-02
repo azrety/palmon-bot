@@ -30,12 +30,7 @@ const BOT_LANG = "en"; // change ici pour test
 const getName = (attr) => {
   if (!attr) return "?";
 
-  switch (BOT_LANG) {
-    case "en": return attr.en || attr.fr;
-    case "es": return attr.es || attr.fr;
-    case "de": return attr.de || attr.fr;
-    default: return attr.fr;
-  }
+  return `${attr.fr} / ${attr.en} / ${attr.es} / ${attr.de}`;
 };
 
 // =========================
