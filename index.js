@@ -13,22 +13,34 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const { DateTime } = require('luxon');
 
 const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_ID = process.env.CLIENT_ID; //1499887179936305303
 const SHEET_ID = process.env.SHEET_ID;
 const SHEET_API = process.env.SHEET_API;
 
 const GID_PLAYERS = process.env.GID_PLAYERS; // 307583676
 const GID_ATTR = process.env.GID_ATTR; // 1049184729;
-const GUILD_ID = process.env.GUILD_ID; //1491506781245931563
+const GUILD_ID = process.env.GUILD_ID; //1499887179936305303
 
 const getEmoji = (category) => {
   return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
 };
+// BOT LANGUAGE (for attributes names)
+const BOT_LANG = "en"; // change ici pour test
 
-const getName = (attr, lang = "fr") => {
+const getName = (attr) => {
   if (!attr) return "?";
-  return attr[lang] || attr.fr || attr.en || attr.es || attr.de || "?";
+
+  switch (BOT_LANG) {
+    case "en": return attr.en || attr.fr;
+    case "es": return attr.es || attr.fr;
+    case "de": return attr.de || attr.fr;
+    default: return attr.fr;
+  }
 };
+
+// =========================
+// DISCORD CLIENT
+// =========================
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
