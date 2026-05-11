@@ -224,6 +224,11 @@ async function registerCommands() {
     new SlashCommandBuilder()
       .setName('top')
       .setDescription('Classement des joueurs (T1)'),   
+// PLAYERS //
+    new SlashCommandBuilder()
+      .setName('players')
+      .setDescription('Liste des joueurs (sans stats)'),
+
 // CONCOURS TEUB//   
     new SlashCommandBuilder()
       .setName('concours-teub')
@@ -459,7 +464,7 @@ T1:${p.t1} | T2:${p.t2} | T3:${p.t3} | T4:${p.t4}`
     );
 
     // 🔥 PAGINATION
-    const perPage = 5;
+    const perPage = 6;
     let page = 0;
     const maxPage = Math.ceil(lines.length / perPage) - 1;
 
@@ -554,7 +559,7 @@ if (cmd === "searchpalmon") {
     `👤 **${p.pseudo}**\n${formatMons(p)}`
   );
 
-  const perPage = 3;
+  const perPage = 6;
   let page = 0;
   const maxPage = Math.ceil(lines.length / perPage) - 1;
 
@@ -698,6 +703,47 @@ T1: ${p.t1} | T2: ${p.t2} | T3: ${p.t3} | T4: ${p.t4}`;
     message.edit({ components: [] });
   });
 }
+// =========================
+// PLAYERS
+// =========================
+if (cmd === "players") {
+  await interaction.deferReply();
+
+  const res = await fetch(SHEET_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getplayers" })
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!data?.success) {
+    return interaction.editReply("❌ API error");
+  }
+
+  const names = data.players
+    .map(p => p.name)
+    .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }))
+    .map(name => `👤 ${name}`);
+
+  const perPage = 20;
+  let page = 0;
+  const maxPage = Math.ceil(names.length / perPage) - 1;
+
+  const generateEmbed = () => {
+    const slice = names.slice(page * perPage, (page + 1) * perPage);
+
+    return new EmbedBuilder()
+      .setTitle("👥 Liste des joueurs")
+      .setColor(0x00AE86)
+      .setDescription(slice.join("\n"))
+      .setFooter({ text: `Page ${page + 1}/${maxPage + 1}` });
+  };
+
+  return interaction.editReply({
+    embeds: [generateEmbed()]
+  });
+}
 // ========================= 
 // CONCOURS TEUB
 // =========================
@@ -815,10 +861,7 @@ ${winnerEmoji} **${winnerName}**
       }
     });
 
-    client.once("ready", async () => {
-  console.log("Bot ready");
-  await registerCommands();
-});
+   
 console.log("🚀 Bot start...");
 console.log("TOKEN exists:", !!TOKEN);
 console.log("Bot ready !");
