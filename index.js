@@ -832,7 +832,6 @@ if (cmd === "perefloflo") {
     "🍗 Père Floflo parle la bouche pleine. Comme toujours...",
     "🧻 Le récit commence… et le respect disparaît immédiatement.",
     "🎙️ Père Floflo monte sur scène avec la grâce d’un sanglier bourré.",
-    const intros = [
     "📚 Père Floflo referme un livre qui aurait clairement dû rester fermé...",
     "🔥 Le silence devient gênant… Père Floflo prend la parole malgré tout.",
     "🍺 Père Floflo trébuche en arrivant, mais affirme que c’était prévu.",
