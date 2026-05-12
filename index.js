@@ -23,6 +23,8 @@ const GID_PLAYERS = process.env.GID_PLAYERS; // 307583676
 const GID_ATTR = process.env.GID_ATTR; // 1049184729;
 const GUILD_ID = process.env.GUILD_ID; //1499887179936305303
 
+const path = require('path');
+
 const getEmoji = (category) => {
   return { S: "🟡", A: "🟣", B: "🔵", C: "⚪" }[category] || "❔";
 };
@@ -234,7 +236,10 @@ async function registerCommands() {
     new SlashCommandBuilder()
       .setName('players')
       .setDescription('Liste des joueurs (sans stats)'),
-
+// PEREFLOFLO //
+    new SlashCommandBuilder()
+      .setName('perefloflo')
+      .setDescription('Introduction du Père Floflo'),
 // CONCOURS TEUB//   
     new SlashCommandBuilder()
       .setName('concours-teub')
@@ -785,6 +790,42 @@ const row = () => new ActionRowBuilder().addComponents(
 
   collector.on("end", () => {
     msg.edit({ components: [] }).catch(() => {});
+  });
+}
+// =========================
+// PEREFLOFLO
+// =========================
+if (cmd === "perefloflo") {
+
+  const intros = [
+    "📖 Père Floflo s’avance vers le feu...",
+    "🐉 Père Floflo descend de son dragon...",
+    "🍺 Père Floflo vide sa chope avant de parler...",
+    "🔥 Le vieux sage prépare son histoire..."
+  ];
+
+  const sounds = [
+    "floflo1.mp3",
+    "floflo2.mp3",
+    "floflo3.mp3"
+  ];
+
+  const intro =
+    intros[Math.floor(Math.random() * intros.length)];
+
+  const sound =
+    sounds[Math.floor(Math.random() * sounds.length)];
+
+  await interaction.reply({
+    content: intro,
+    files: [{
+      attachment: path.join(
+        __dirname,
+        'sounds',
+        sound
+      ),
+      name: 'pere-floflo-intro.mp3'
+    }]
   });
 }
 // ========================= 
