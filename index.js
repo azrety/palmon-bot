@@ -3,10 +3,13 @@ require('dotenv').config();
 const {
   Client,
   GatewayIntentBits,
-  EmbedBuilder,
+ EmbedBuilder,
   REST,
   Routes,
-  SlashCommandBuilder
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } = require('discord.js');
 
 // 🔥 FIX node-fetch (compatible v3)
@@ -70,7 +73,6 @@ client.once("ready", async () => {
   await registerCommands();
 });
 
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 // CLASH GENERATOR //
 const clashs = [
   "😐 Duel correct, rien de fou.",
