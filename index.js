@@ -425,11 +425,9 @@ function findTranslationGroup(channelId) {
 // HANDLER SAFE
 // =========================
 
-/*
-━━━━━━━━━━━━━━━━━━━━━━
-AUTO TRANSLATION
-━━━━━━━━━━━━━━━━━━━━━━
-*/
+// =========================
+// AUTO TRANSLATION
+// =========================
 
 client.on("messageCreate", async (message) => {
 
@@ -1032,9 +1030,12 @@ if (cmd === "perefloflo") {
   ];
 
   const sounds = [
+    "floflo.mp3",
     "floflo1.mp3",
     "floflo2.mp3",
-    "floflo3.mp3"
+    "floflo3.mp3",
+    "floflo4.mp3",
+    "floflo6.mp3",
   ];
 
   const intro =
