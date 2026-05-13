@@ -23,6 +23,20 @@ const GID_PLAYERS = process.env.GID_PLAYERS; // 307583676
 const GID_ATTR = process.env.GID_ATTR; // 1049184729;
 const GUILD_ID = process.env.GUILD_ID; //1499887179936305303
 
+//TRADUCTION r4 //
+const translate = require('google-translate-api-x');
+
+const translationGroups = {
+
+  r4: {
+    fr: '1491514382860156928',
+    en: '1504214531033796709',
+    es: '1504215963514441858'
+  }
+
+};
+
+const webhookCache = {};
 const path = require('path');
 
 const getEmoji = (category) => {
@@ -37,12 +51,18 @@ const getName = (attr) => {
   return `${attr.fr} / ${attr.en} / ${attr.es} / ${attr.de}`;
 };
 
+
+
 // =========================
 // DISCORD CLIENT
 // =========================
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
 });
 
 client.once("ready", async () => {
@@ -172,12 +192,12 @@ async function registerCommands() {
         .addNumberOption(o =>
           o.setName('t1')
             .setDescription('Score T1')
-            .setRequired(false)
+            .setRequired(true)
         )
         .addNumberOption(o =>
           o.setName('t2')
             .setDescription('Score T2')
-            .setRequired(false)
+            .setRequired(true)
         )
         .addNumberOption(o =>
           o.setName('t3')
@@ -348,9 +368,127 @@ async function getAttributesMap() {
   return map;
 }
 
+//WEBHOOKS // (pour les traductions, éviter de créer un webhook à chaque message)
+async function getWebhook(channel) {
+
+  if (webhookCache[channel.id]) {
+    return webhookCache[channel.id];
+  }
+
+  const hooks = await channel.fetchWebhooks();
+
+  let hook = hooks.find(h => h.name === 'GuildTranslator');
+
+  if (!hook) {
+
+    hook = await channel.createWebhook({
+      name: 'GuildTranslator'
+    });
+
+  }
+
+  webhookCache[channel.id] = hook;
+
+  return hook;
+}
+
+/*
+━━━━━━━━━━━━━━━━━━━━━━
+FIND TRANSLATION GROUP
+━━━━━━━━━━━━━━━━━━━━━━
+*/
+
+function findTranslationGroup(channelId) {
+
+  for (const [groupName, langs] of Object.entries(translationGroups)) {
+
+    for (const [lang, id] of Object.entries(langs)) {
+
+      if (id === channelId) {
+
+        return {
+          groupName,
+          sourceLang: lang,
+          channels: langs
+        };
+
+      }
+    }
+  }
+
+  return null;
+}
+
 // =========================
 // HANDLER SAFE
 // =========================
+
+/*
+━━━━━━━━━━━━━━━━━━━━━━
+AUTO TRANSLATION
+━━━━━━━━━━━━━━━━━━━━━━
+*/
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (message.author.bot) return;
+    if (message.webhookId) return;
+
+    const translationData = findTranslationGroup(message.channel.id);
+
+    if (!translationData) return;
+
+    if (!message.content) return;
+    if (message.content.length < 2) return;
+
+    const {
+      sourceLang,
+      channels
+    } = translationData;
+
+    for (const [targetLang, targetChannelId] of Object.entries(channels)) {
+
+      // ignore même langue
+      if (targetLang === sourceLang) continue;
+
+      try {
+
+        const translated = await translate(message.content, {
+          from: sourceLang,
+          to: targetLang
+        });
+
+        const targetChannel = await client.channels.fetch(targetChannelId);
+
+        if (!targetChannel) continue;
+
+        const webhook = await getWebhook(targetChannel);
+
+        await webhook.send({
+          content: translated.text,
+          username: message.member?.displayName || message.author.username,
+          avatarURL: message.author.displayAvatarURL(),
+          allowedMentions: {
+            parse: []
+          }
+        });
+
+      } catch (err) {
+
+        console.error("Erreur traduction :", err);
+
+      }
+    }
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+});
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
