@@ -81,18 +81,18 @@ function buildCommands() {
 
     new SlashCommandBuilder()
       .setName("spammedia")
-      .setDescription("Envoie plusieurs fois une image ou un gif dans le salon autorisé")
-      .addAttachmentOption(o =>
-        o.setName("media")
-          .setDescription("Image ou gif à envoyer")
-          .setRequired(true)
-      )
+      .setDescription("Envoie plusieurs fois une image/gif ou un media aléatoire local")
       .addIntegerOption(o =>
         o.setName("nombre")
           .setDescription("Nombre d'envois, entre 1 et 10")
           .setMinValue(1)
           .setMaxValue(10)
           .setRequired(true)
+      )
+      .addAttachmentOption(o =>
+        o.setName("media")
+          .setDescription("Image ou gif à envoyer")
+          .setRequired(false)
       )
       .addStringOption(o =>
         o.setName("texte")

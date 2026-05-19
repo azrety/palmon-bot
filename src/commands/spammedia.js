@@ -1,9 +1,28 @@
+const fs = require("fs");
+const path = require("path");
 const config = require("../config");
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+const GIFS_DIR = path.join(__dirname, "..", "..", "gifs");
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getLocalMediaFiles() {
+  if (!fs.existsSync(GIFS_DIR)) return [];
+
+  return fs.readdirSync(GIFS_DIR)
+    .filter(file => ALLOWED_EXTENSIONS.includes(path.extname(file).toLowerCase()))
+    .map(file => path.join(GIFS_DIR, file));
+}
+
+function getRandomLocalMedia() {
+  const files = getLocalMediaFiles();
+  if (!files.length) return null;
+
+  return files[Math.floor(Math.random() * files.length)];
 }
 
 module.exports = {
@@ -27,9 +46,28 @@ module.exports = {
     const count = interaction.options.getInteger("nombre");
     const text = interaction.options.getString("texte") || "";
 
-    if (!ALLOWED_TYPES.includes(media.contentType)) {
+    if (media && !ALLOWED_TYPES.includes(media.contentType)) {
       return interaction.reply({
         content: "❌ Le fichier doit être une image ou un gif.",
+        ephemeral: true
+      });
+    }
+
+    const mediaFiles = [];
+
+    for (let i = 0; i < count; i++) {
+      if (media) {
+        mediaFiles.push(media.url);
+        continue;
+      }
+
+      const randomMedia = getRandomLocalMedia();
+      if (randomMedia) mediaFiles.push(randomMedia);
+    }
+
+    if (mediaFiles.length < count) {
+      return interaction.reply({
+        content: "❌ Aucun media trouvé dans le dossier gifs/. Ajoute des fichiers .gif, .png, .jpg, .jpeg ou .webp.",
         ephemeral: true
       });
     }
@@ -39,13 +77,13 @@ module.exports = {
       ephemeral: true
     });
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < mediaFiles.length; i++) {
       await interaction.channel.send({
         content: text,
-        files: [media.url]
+        files: [mediaFiles[i]]
       });
 
-      if (i < count - 1) {
+      if (i < mediaFiles.length - 1) {
         await wait(750);
       }
     }
