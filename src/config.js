@@ -7,5 +7,6 @@ module.exports = {
   sheetApi: process.env.SHEET_API,
   gidPlayers: process.env.GID_PLAYERS,
   gidAttr: process.env.GID_ATTR,
-  guildId: process.env.GUILD_ID
+  guildId: process.env.GUILD_ID,
+  spamChannelId: process.env.SPAM_CHANNEL_ID
 };

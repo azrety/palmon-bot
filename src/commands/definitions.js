@@ -80,6 +80,27 @@ function buildCommands() {
       .setDescription("Introduction du Père Floflo"),
 
     new SlashCommandBuilder()
+      .setName("spammedia")
+      .setDescription("Envoie plusieurs fois une image ou un gif dans le salon autorisé")
+      .addAttachmentOption(o =>
+        o.setName("media")
+          .setDescription("Image ou gif à envoyer")
+          .setRequired(true)
+      )
+      .addIntegerOption(o =>
+        o.setName("nombre")
+          .setDescription("Nombre d'envois, entre 1 et 10")
+          .setMinValue(1)
+          .setMaxValue(10)
+          .setRequired(true)
+      )
+      .addStringOption(o =>
+        o.setName("texte")
+          .setDescription("Texte optionnel avec le media")
+          .setRequired(false)
+      ),
+
+    new SlashCommandBuilder()
       .setName("concours-teub")
       .setDescription("Comparer 2 joueurs")
       .addStringOption(o =>

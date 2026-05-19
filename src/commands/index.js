@@ -5,6 +5,7 @@ const commands = [
   require("./perefloflo"),
   require("./players"),
   require("./searchpalmon"),
+  require("./spammedia"),
   require("./stats"),
   require("./top"),
   require("./upgrade")
