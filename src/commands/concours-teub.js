@@ -80,6 +80,7 @@ module.exports = {
     🎮 *Welcome to this new deteub contest where minds collide!*
 
     ## 🎯 Sortez vos armes ...  
+    
     ## 🎯 Draw your weapons ...
 
     🤛 *READY...FIGHT* 🤜
