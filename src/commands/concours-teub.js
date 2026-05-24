@@ -74,30 +74,40 @@ module.exports = {
       .setTitle("⚔️ ARENA MATCH : CONCOURS DE TEUB")
       .setColor(0xFF00FF)
       .setDescription(
-`🟥 **${p1.name}**  VS  🟦 **${p2.name}**
+    `🟥 **${p1.name}** VS 🟦 **${p2.name}**
 
-🎮 *Bienvenue dans ce nouveau concours de teub où les cerveaux s'affrontent!*
-## 🎯 Sortez vos armes ...
+    🎮 *Bienvenue dans ce nouveau concours de teub où les cerveaux s'affrontent !*  
+    🎮 *Welcome to this new deteub contest where minds collide!*
 
-🤛*READY...FIGHT*🤜
+    ## 🎯 Sortez vos armes ...  
+    ## 🎯 Draw your weapons ...
 
-${lines.join("\n")}
---- 
-## 📊 FINAL SCORE
+    🤛 *READY...FIGHT* 🤜
 
-🟥 **${p1.name}** → ${total1} pts  
-🟦 **${p2.name}** → ${total2} pts  
----
-## 🏆 WINNER
+    ${lines.join("\n")}
 
-${winnerEmoji} **${winnerName}**
+    ---
+    ## 📊 FINAL SCORE  
+    ## 📊 SCORE FINAL
 
-## 🎙️ LIVE COMMENTATOR
-💬 *${finalClash}*
+    🟥 **${p1.name}** → ${total1} pts  
+    🟦 **${p2.name}** → ${total2} pts  
 
-📡 *“Ce match vient d’entrer dans les annales du serveur…”*
-`
-      );
+    ---
+    ## 🏆 GAGNANT  
+    ## 🏆 WINNER
+
+    ${winnerEmoji} **${winnerName}**
+
+    ## 🎙️ COMMENTATEUR LIVE  
+    ## 🎙️ LIVE COMMENTATOR
+
+    💬 *${finalClash}*
+
+    📡 *“Ce match vient d’entrer dans les annales du serveur…”*  
+    📡 *“This match has officially entered the server’s history…”*
+    `
+  );
 
     return interaction.editReply({ embeds: [embed] });
   }
