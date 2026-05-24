@@ -3,8 +3,32 @@ const path = require("path");
 const { MessageFlags } = require("discord.js");
 const config = require("../config");
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
-const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+const ALLOWED_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg"
+];
+
+const ALLOWED_EXTENSIONS = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".mp4",
+  ".webm",
+  ".mp3",
+  ".wav",
+  ".ogg"
+];
+
 const GIFS_DIR = path.join(__dirname, "..", "..", "gifs");
 const PRIVATE_REPLY = MessageFlags.Ephemeral;
 
