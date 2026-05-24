@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
+const { MessageFlags } = require("discord.js");
 const config = require("../config");
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
 const GIFS_DIR = path.join(__dirname, "..", "..", "gifs");
+const PRIVATE_REPLY = MessageFlags.Ephemeral;
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -31,14 +33,14 @@ module.exports = {
     if (!config.spamChannelId) {
       return interaction.reply({
         content: "❌ SPAM_CHANNEL_ID n'est pas configuré dans le .env du serveur.",
-        ephemeral: true
+        flags: PRIVATE_REPLY
       });
     }
 
     if (interaction.channelId !== config.spamChannelId) {
       return interaction.reply({
         content: "❌ Cette commande est réservée au salon autorisé.",
-        ephemeral: true
+        flags: PRIVATE_REPLY
       });
     }
 
@@ -49,7 +51,7 @@ module.exports = {
     if (media && !ALLOWED_TYPES.includes(media.contentType)) {
       return interaction.reply({
         content: "❌ Le fichier doit être une image ou un gif.",
-        ephemeral: true
+        flags: PRIVATE_REPLY
       });
     }
 
@@ -68,24 +70,32 @@ module.exports = {
     if (mediaFiles.length < count) {
       return interaction.reply({
         content: "❌ Aucun media trouvé dans le dossier gifs/. Ajoute des fichiers .gif, .png, .jpg, .jpeg ou .webp.",
-        ephemeral: true
+        flags: PRIVATE_REPLY
       });
     }
 
     await interaction.reply({
       content: `✅ Envoi de ${count} media(s)...`,
-      ephemeral: true
+      flags: PRIVATE_REPLY
     });
 
-    for (let i = 0; i < mediaFiles.length; i++) {
-      await interaction.channel.send({
-        content: text,
-        files: [mediaFiles[i]]
-      });
+    try {
+      for (let i = 0; i < mediaFiles.length; i++) {
+        await interaction.channel.send({
+          content: text,
+          files: [mediaFiles[i]]
+        });
 
-      if (i < mediaFiles.length - 1) {
-        await wait(750);
+        if (i < mediaFiles.length - 1) {
+          await wait(750);
+        }
       }
+    } catch (err) {
+      console.error("Erreur spammedia :", err);
+
+      return interaction.editReply(
+        "❌ Discord refuse l'envoi dans ce salon. Vérifie que le bot voit le salon et a les permissions Envoyer des messages + Joindre des fichiers."
+      );
     }
   }
 };

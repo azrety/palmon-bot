@@ -1,3 +1,5 @@
+const { MessageFlags } = require("discord.js");
+
 const commands = [
   require("./addplayer"),
   require("./concours-teub"),
@@ -30,7 +32,7 @@ function setupCommandHandler(client) {
       }
 
       if (!interaction.replied) {
-        return interaction.reply({ content: "❌ erreur serveur", ephemeral: true });
+        return interaction.reply({ content: "❌ erreur serveur", flags: MessageFlags.Ephemeral });
       }
     }
   });
