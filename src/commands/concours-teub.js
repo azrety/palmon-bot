@@ -57,8 +57,8 @@ module.exports = {
       null;
 
     const finalClash = rawClash
-      .replace("{winner}", winnerDynamic ?? "personne")
-      .replace("{loser}", loserDynamic ?? "personne");
+      .replaceAll("{winner}", winnerDynamic ?? "personne/nobody")
+      .replaceAll("{loser}", loserDynamic ?? "personne/nobody");
 
     const winnerName =
       total1 > total2 ? p1.name :
