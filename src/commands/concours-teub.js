@@ -77,31 +77,26 @@ module.exports = {
     `🟥 **${p1.name}** VS 🟦 **${p2.name}**
 
     🎮 *Bienvenue dans ce nouveau concours de teub où les cerveaux s'affrontent !*  
-    🎮 *Welcome to this new deteub contest where minds collide!*
+    🎮 *Welcome to this new Dicksus contest where minds collide!*
 
-    ## 🎯 Sortez vos armes ...  
-    
-    ## 🎯 Draw your weapons ...
+    ## 🎯 Sortez vos armes ... / Draw your weapons ...
 
     🤛 *READY...FIGHT* 🤜
 
     ${lines.join("\n")}
 
     ---
-    ## 📊 FINAL SCORE  
-    ## 📊 SCORE FINAL
+    ## 📊 SCORE FINAL / FINAL SCORE
 
     🟥 **${p1.name}** → ${total1} pts  
     🟦 **${p2.name}** → ${total2} pts  
 
     ---
-    ## 🏆 GAGNANT  
-    ## 🏆 WINNER
+    ## 🏆 GAGNANT / WINNER
 
     ${winnerEmoji} **${winnerName}**
 
-    ## 🎙️ COMMENTATEUR LIVE  
-    ## 🎙️ LIVE COMMENTATOR
+    ## 🎙️ COMMENTATEUR LIVE / LIVE COMMENTATOR
 
     💬 *${finalClash}*
 
