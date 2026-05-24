@@ -98,7 +98,8 @@ module.exports = {
 
     ## 🎙️ COMMENTATEUR LIVE / LIVE COMMENTATOR
 
-    💬 *${finalClash}*
+    💬 
+    *${finalClash}*
 
     📡 *“Ce match vient d’entrer dans les annales du serveur…”*  
     📡 *“This match has officially entered the server’s history…”*
