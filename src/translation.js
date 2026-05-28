@@ -101,8 +101,8 @@ function setupAutoTranslation(client) {
 
       const translationData = findTranslationGroup(message.channel.id);
       if (!translationData) return;
-      if (!message.content) return;
-      if (message.content.length < 2) return;
+      if (!message.content && message.attachments.size === 0) return;
+      if (message.content && message.content.length < 2 && message.attachments.size === 0) return;
 
       const { sourceLang, channels } = translationData;
       const translations = [];
