@@ -122,13 +122,19 @@ function setupAutoTranslation(client) {
           const webhook = await getWebhook(targetChannel);
 
           const sent = await webhook.send({
-            content: translated.text,
-            username: message.member?.displayName || message.author.username,
-            avatarURL: message.author.displayAvatarURL(),
-            allowedMentions: {
-              parse: []
-            }
-          });
+              content: translated.text || message.content || "‎",
+              username: message.member?.displayName || message.author.username,
+              avatarURL: message.author.displayAvatarURL(),
+
+              files: [...message.attachments.values()].map(att => ({
+                attachment: att.url,
+                name: att.name
+              })),
+
+              allowedMentions: {
+                parse: []
+              }
+            });
 
           translations.push({
             lang: targetLang,
