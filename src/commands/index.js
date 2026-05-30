@@ -12,6 +12,7 @@ function saveData(data) {
   fs.writeFileSync("./src/data/arctique.json", JSON.stringify(data, null, 2));
 }
 
+// ---------------- COMMANDS ----------------
 const commands = [
   require("./addplayer"),
   require("./concours-teub"),
@@ -23,8 +24,7 @@ const commands = [
   require("./stats"),
   require("./top"),
   require("./upgrade"),
-  require("./arctique"),
-  require("./archivearctique")
+  require("./arctique")
 ];
 
 const commandMap = new Map(commands.map(c => [c.name, c]));
@@ -38,6 +38,7 @@ function setupCommandHandler(client) {
 
     // ================= COMMANDES =================
     if (interaction.isChatInputCommand()) {
+
       const command = commandMap.get(interaction.commandName);
       if (!command) return;
 
@@ -78,13 +79,10 @@ function setupCommandHandler(client) {
         return arctique.arctiquePrev(interaction);
       }
 
-     if (interaction.customId === "archive_data") {
-        return interaction.reply({
-          content: "📝 Donne un nom à l'archive : utilise `/archive nom:XXX`",
-          ephemeral: true
-        });
+      // ✅ ARCHIVE PROPRE
+      if (interaction.customId === "archiveArctique") {
+        return arctique.archiveArctique(interaction);
       }
-    
 
       if (interaction.customId === "reset_data") {
         const data = loadData();
@@ -94,6 +92,7 @@ function setupCommandHandler(client) {
 
         return interaction.reply({
           content: "🔄 Reset OK",
+          ephemeral: true
         });
       }
     }
@@ -121,8 +120,9 @@ function setupCommandHandler(client) {
 
         saveData(data);
 
-        await interaction.reply({
+        return interaction.reply({
           content: `✅ Base ${base} enregistrée`,
+          ephemeral: true
         });
       }
     }
