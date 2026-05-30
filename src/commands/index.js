@@ -18,24 +18,50 @@ const commandMap = new Map(commands.map(command => [command.name, command]));
 
 function setupCommandHandler(client) {
   client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
 
-    const command = commandMap.get(interaction.commandName);
-    if (!command) return;
+    // COMMANDES
+    if (interaction.isChatInputCommand()) {
 
-    try {
-      await command.execute(interaction);
-    } catch (err) {
-      console.error(err);
+      const command = commandMap.get(interaction.commandName);
+      if (!command) return;
 
-      if (interaction.deferred) {
-        return interaction.editReply("❌ erreur serveur");
-      }
+      try {
+        await command.execute(interaction);
+      } catch (err) {
+        console.error(err);
 
-      if (!interaction.replied) {
-        return interaction.reply({ content: "❌ erreur serveur", flags: MessageFlags.Ephemeral });
+        if (interaction.deferred) {
+          return interaction.editReply("❌ erreur serveur");
+        }
+
+        if (!interaction.replied) {
+          return interaction.reply({
+            content: "❌ erreur serveur",
+            ephemeral: true
+          });
+        }
       }
     }
+
+    // BOUTONS
+    if (interaction.isButton()) {
+
+      if (interaction.customId === "add_base") {
+        return interaction.reply({
+          content: "📝 Bouton Ajouter détecté !",
+          ephemeral: true
+        });
+      }
+
+      if (interaction.customId === "view_base") {
+        return interaction.reply({
+          content: "🔍 Bouton Consulter détecté !",
+          ephemeral: true
+        });
+      }
+
+    }
+
   });
 }
 
