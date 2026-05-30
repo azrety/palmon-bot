@@ -53,9 +53,48 @@ function setupCommandHandler(client) {
       }
 
       if (interaction.customId === "view_base") {
-  
+      
+        const fs = require("fs");
+      
+        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const current = data.current || {};
+      
+        const bases = Object.entries(current);
+      
+        if (bases.length === 0) {
+          return interaction.reply({
+            content: "📭 Aucune base enregistrée",
+            ephemeral: true
+          });
+        }
+      
+        let text = "📊 **TOUTES LES BASES ARCTIQUE**\n\n";
+      
+        for (const [base, info] of bases) {
+      
+          text += `📍 Base ${base}\n`;
+      
+          if (info.equipe1 !== undefined) text += `E1: ${info.equipe1}\n`;
+          if (info.equipe2 !== undefined) text += `E2: ${info.equipe2}\n`;
+          if (info.equipe3 !== undefined) text += `E3: ${info.equipe3}\n`;
+          if (info.equipe4 !== undefined) text += `E4: ${info.equipe4}\n`;
+      
+          if (info.commentaire) {
+            text += `📝 ${info.commentaire}\n`;
+          }
+      
+          if (info.notes?.length) {
+            text += "Notes:\n";
+            info.notes.forEach(n => {
+              text += `• ${n}\n`;
+            });
+          }
+      
+          text += "\n";
+        }
+      
         return interaction.reply({
-          content: "🔍 Envoie le numéro de la base à consulter (fonction à venir)",
+          content: text,
           ephemeral: true
         });
       }
