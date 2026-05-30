@@ -1,4 +1,15 @@
 const fs = require("fs");
+function loadData() {
+  try {
+    return JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+  } catch (e) {
+    return { current: {}, archive: [] };
+  }
+}
+
+function saveData(data) {
+  saveData(data);
+}
 
 const commands = [
   require("./addplayer"),
@@ -54,9 +65,8 @@ function setupCommandHandler(client) {
 
       if (interaction.customId === "view_base") {
       
-        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const data = loadData();        
         const current = data.current || {};
-      
         const bases = Object.entries(current);
       
         if (bases.length === 0) {
@@ -98,7 +108,7 @@ function setupCommandHandler(client) {
       }
 
       if (interaction.customId === "archive_data") {
-        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const data = loadData();
         const archiveEntry = {
           date: new Date().toISOString().split("T")[0],
           data: data.current || {}
@@ -106,7 +116,7 @@ function setupCommandHandler(client) {
         data.archive = data.archive || [];
         data.archive.push(archiveEntry);
         data.current = {}; // reset journalier
-        fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+        saveData(data);
         
         return interaction.reply({
           content: "📦 Données archivées avec succès !",
@@ -115,9 +125,9 @@ function setupCommandHandler(client) {
       }
 
       if (interaction.customId === "reset_data") {
-        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const data = loadData();
         data.current = {};
-        fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+        saveData(data);
       
         return interaction.reply({
           content: "🔄 Données réinitialisées !",
@@ -133,25 +143,33 @@ function setupCommandHandler(client) {
 
         const base = interaction.fields.getTextInputValue("base");
         const equipe1 = interaction.fields.getTextInputValue("equipe1");
-        const commentaire = interaction.fields.getTextInputValue("commentaire");
+        const equipe2 = interaction.fields.getTextInputValue("equipe2");
+        const equipe3 = interaction.fields.getTextInputValue("equipe3");
+        const equipe4 = interaction.fields.getTextInputValue("equipe4");
+        const commentaire = interaction.fields.getTextInputValue("commentaire (pseudo, membre 1ALL KO ...)");
 
         console.log("📥 Données reçues :", {
           base,
           equipe1,
+          equipe2,
+          equipe3,
+          equipe4,
           commentaire
         });
 
-        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const data = loadData();
           
-        if (!data.current) data.current = {};
-          data.current[base] = {
-            equipe1,
-            commentaire,
-            notes: []
-          };
-          
-          fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
-          
+        data.current[base] = {
+          equipe1: equipe1 || null,
+          equipe2: equipe2 || null,
+          equipe3: equipe3 || null,
+          equipe4: equipe4 || null,
+          commentaire: commentaire || null,
+          notes: []
+        };
+                  
+          saveData(data);
+        
           return interaction.reply({
             content: `✅ Base ${base} enregistrée`,
             ephemeral: true
