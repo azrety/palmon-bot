@@ -8,7 +8,7 @@ function loadData() {
 }
 
 function saveData(data) {
-  saveData(data);
+  fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
 }
 
 const commands = [
@@ -82,10 +82,10 @@ function setupCommandHandler(client) {
       
           text += `📍 Base ${base}\n`;
       
-          if (info.equipe1 !== null) text += `E1: ${info.equipe1}\n`;
-          if (info.equipe2 !== null) text += `E2: ${info.equipe2}\n`;
-          if (info.equipe3 !== null) text += `E3: ${info.equipe3}\n`;
-          if (info.equipe4 !== null) text += `E4: ${info.equipe4}\n`;
+          if (info.equipe1) text += `E1: ${info.equipe1}\n`;
+          if (info.equipe2) text += `E2: ${info.equipe2}\n`;
+          if (info.equipe3) text += `E3: ${info.equipe3}\n`;
+          if (info.equipe4) text += `E4: ${info.equipe4}\n`;
       
           if (info.commentaire) {
             text += `📝 ${info.commentaire}\n`;
@@ -103,7 +103,7 @@ function setupCommandHandler(client) {
       
         return interaction.reply({
           content: text,
-          ephemeral: true
+          flags: 64
         });
       }
 
@@ -146,8 +146,8 @@ function setupCommandHandler(client) {
         const equipe2 = interaction.fields.getTextInputValue("equipe2");
         const equipe3 = interaction.fields.getTextInputValue("equipe3");
         const equipe4 = interaction.fields.getTextInputValue("equipe4");
-        const commentaire = interaction.fields.getTextInputValue("commentaire (pseudo, membre 1ALL KO ...)");
-
+        const commentaire = interaction.fields.getTextInputValue("commentaire");
+        
         console.log("📥 Données reçues :", {
           base,
           equipe1,
