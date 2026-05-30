@@ -55,82 +55,45 @@ function setupCommandHandler(client) {
       }
     }
 
-    // BOUTONS
+  const arctique = require("./arctique");
+
+// BOUTONS
     if (interaction.isButton()) {
-
+    
       if (interaction.customId === "add_base") {
-        return interaction.showModal(createAddModal());
+        return interaction.showModal(require("./arctiqueModal").createAddModal());
       }
-
+    
       if (interaction.customId === "view_base") {
-      
-        const data = loadData();        
-        const current = data.current || {};
-        const bases = Object.entries(current);
-      
-        if (bases.length === 0) {
-          return interaction.reply({
-            content: "📭 Aucune base enregistrée",
-            ephemeral: true
-          });
-        }
-      
-        let text = "📊 **TOUTES LES BASES ARCTIQUE**\n\n";
-      
-        for (const [base, info] of bases) {
-      
-          text += `📍 Base ${base}\n`;
-      
-          if (info.equipe1) text += `E1: ${info.equipe1}\n`;
-          if (info.equipe2) text += `E2: ${info.equipe2}\n`;
-          if (info.equipe3) text += `E3: ${info.equipe3}\n`;
-      
-          if (info.commentaire) {
-            text += `📝 ${info.commentaire}\n`;
-          }
-      
-          if (info.notes?.length) {
-            text += "Notes:\n";
-            info.notes.forEach(n => {
-              text += `• ${n}\n`;
-            });
-          }
-      
-          text += "\n";
-        }
-      
-        return interaction.reply({
-          content: text,
-          flags: 0
-        });
+        return arctique.arctiqueView(interaction, 0);
       }
-
+    
+      if (interaction.customId.startsWith("next_page_")) {
+        return arctique.arctiqueNext(interaction);
+      }
+    
+      if (interaction.customId.startsWith("prev_page_")) {
+        return arctique.arctiquePrev(interaction);
+      }
+    
       if (interaction.customId === "archive_data") {
         const data = loadData();
-        const archiveEntry = {
-          date: new Date().toISOString().split("T")[0],
-          data: data.current || {}
-        };
-        data.archive = data.archive || [];
-        data.archive.push(archiveEntry);
-        data.current = {}; // reset journalier
-        saveData(data);
-        
-        return interaction.reply({
-          content: "📦 Données archivées avec succès !",
-          ephemeral: true
+        data.archive.push({
+          date: new Date().toISOString(),
+          data: data.current
         });
+        data.current = [];
+        saveData(data);
+    
+        return interaction.reply({ content: "📦 Archive OK", ephemeral: true });
       }
-
+    
       if (interaction.customId === "reset_data") {
         const data = loadData();
         data.current = {};
         saveData(data);
-      
-        return interaction.reply({
-          content: "🔄 Données réinitialisées !",
-          ephemeral: true
-        });
+    
+        return interaction.reply({ content: "🔄 Reset OK", ephemeral: true });
       }
     }
 
