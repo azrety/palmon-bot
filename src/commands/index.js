@@ -1,4 +1,5 @@
 const fs = require("fs");
+
 function loadData() {
   try {
     return JSON.parse(fs.readFileSync("./src/data/arctique.json", "utf8"));
@@ -25,15 +26,17 @@ const commands = [
   require("./arctique")
 ];
 
-const commandMap = new Map(commands.map(command => [command.name, command]));
+const commandMap = new Map(commands.map(c => [c.name, c]));
 
 const { createAddModal } = require("./arctiqueModal");
+const arctique = require("./arctique");
+
 function setupCommandHandler(client) {
+
   client.on("interactionCreate", async (interaction) => {
 
-    // COMMANDES
+    // ================= COMMANDES =================
     if (interaction.isChatInputCommand()) {
-
       const command = commandMap.get(interaction.commandName);
       if (!command) return;
 
@@ -55,49 +58,57 @@ function setupCommandHandler(client) {
       }
     }
 
-  const arctique = require("./arctique");
-
-// BOUTONS
+    // ================= BOUTONS =================
     if (interaction.isButton()) {
-    
+
       if (interaction.customId === "add_base") {
-        return interaction.showModal(require("./arctiqueModal").createAddModal());
+        return interaction.showModal(createAddModal());
       }
-    
+
       if (interaction.customId === "view_base") {
         return arctique.arctiqueView(interaction, 0);
       }
-    
+
       if (interaction.customId.startsWith("next_page_")) {
         return arctique.arctiqueNext(interaction);
       }
-    
+
       if (interaction.customId.startsWith("prev_page_")) {
         return arctique.arctiquePrev(interaction);
       }
-    
+
       if (interaction.customId === "archive_data") {
         const data = loadData();
+
         data.archive.push({
           date: new Date().toISOString(),
           data: data.current
         });
-        data.current = [];
+
+        data.current = {};
+
         saveData(data);
-    
-        return interaction.reply({ content: "📦 Archive OK", ephemeral: true });
+
+        return interaction.reply({
+          content: "📦 Archive OK",
+          ephemeral: true
+        });
       }
-    
+
       if (interaction.customId === "reset_data") {
         const data = loadData();
+
         data.current = {};
         saveData(data);
-    
-        return interaction.reply({ content: "🔄 Reset OK", ephemeral: true });
+
+        return interaction.reply({
+          content: "🔄 Reset OK",
+          ephemeral: true
+        });
       }
     }
 
-    // MODALS
+    // ================= MODALS =================
     if (interaction.isModalSubmit()) {
 
       if (interaction.customId === "add_base_modal") {
@@ -107,17 +118,9 @@ function setupCommandHandler(client) {
         const equipe2 = interaction.fields.getTextInputValue("equipe2");
         const equipe3 = interaction.fields.getTextInputValue("equipe3");
         const commentaire = interaction.fields.getTextInputValue("commentaire");
-        
-        console.log("📥 Données reçues :", {
-          base,
-          equipe1,
-          equipe2,
-          equipe3,
-          commentaire
-        });
 
         const data = loadData();
-          
+
         data.current[base] = {
           equipe1: equipe1 || null,
           equipe2: equipe2 || null,
@@ -125,34 +128,21 @@ function setupCommandHandler(client) {
           commentaire: commentaire || null,
           notes: []
         };
-                  
-          saveData(data);
-        
-          await interaction.reply({
-            content: `✅ Base ${base} enregistrée`,
-            ephemeral: true
-          });
-          
-          const logChannel = interaction.guild.channels.cache.get("ID_DU_CHANNEL");
-          
-          if (logChannel) {
-            logChannel.send(`📊 Nouvelle base ajoutée : **${base}**`);
-          }
 
-      if (interaction.customId === "view_base") {
-          return arctiqueView(interaction);
-        }
-        
-        if (interaction.customId === "next_page") {
-          return arctiqueNext(interaction);
-        }
-        
-        if (interaction.customId === "prev_page") {
-          return arctiquePrev(interaction);
+        saveData(data);
+
+        await interaction.reply({
+          content: `✅ Base ${base} enregistrée`,
+          ephemeral: true
+        });
+
+        const logChannel = interaction.guild.channels.cache.get("ID_DU_CHANNEL");
+
+        if (logChannel) {
+          logChannel.send(`📊 Nouvelle base ajoutée : **${base}**`);
         }
       }
     }
-      
   });
 }
 
