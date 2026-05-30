@@ -1,5 +1,3 @@
-const { MessageFlags } = require("discord.js");
-
 const commands = [
   require("./addplayer"),
   require("./concours-teub"),
@@ -15,6 +13,8 @@ const commands = [
 ];
 
 const commandMap = new Map(commands.map(command => [command.name, command]));
+
+const { createAddModal } = require("./arctique");
 
 function setupCommandHandler(client) {
   client.on("interactionCreate", async (interaction) => {
@@ -46,9 +46,9 @@ function setupCommandHandler(client) {
     // BOUTONS
     if (interaction.isButton()) {
 
-    if (interaction.customId === "add_base") {
-       return interaction.showModal(createAddModal());
-    }
+      if (interaction.customId === "add_base") {
+        return interaction.showModal(createAddModal());
+      }
 
       if (interaction.customId === "view_base") {
         return interaction.reply({
@@ -56,26 +56,28 @@ function setupCommandHandler(client) {
           ephemeral: true
         });
       }
-      if (interaction.isModalSubmit()) {
+    }
 
-  if (interaction.customId === "add_base_modal") {
+    // MODALS
+    if (interaction.isModalSubmit()) {
 
-    const base = interaction.fields.getTextInputValue("base");
-    const equipe1 = interaction.fields.getTextInputValue("equipe1");
-    const commentaire = interaction.fields.getTextInputValue("commentaire");
+      if (interaction.customId === "add_base_modal") {
 
-    console.log("📥 Données reçues :", {
-      base,
-      equipe1,
-      commentaire
-    });
+        const base = interaction.fields.getTextInputValue("base");
+        const equipe1 = interaction.fields.getTextInputValue("equipe1");
+        const commentaire = interaction.fields.getTextInputValue("commentaire");
 
-    return interaction.reply({
-      content: `✅ Base ${base} enregistrée`,
-      ephemeral: true
-    });
-  }
-}
+        console.log("📥 Données reçues :", {
+          base,
+          equipe1,
+          commentaire
+        });
+
+        return interaction.reply({
+          content: `✅ Base ${base} enregistrée`,
+          ephemeral: true
+        });
+      }
     }
 
   });
