@@ -27,8 +27,7 @@ const commands = [
 
 const commandMap = new Map(commands.map(command => [command.name, command]));
 
-const { createAddModal } = require("./arctique");
-
+const { createAddModal } = require("./arctiqueModal");
 function setupCommandHandler(client) {
   client.on("interactionCreate", async (interaction) => {
 
