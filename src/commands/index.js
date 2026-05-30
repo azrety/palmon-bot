@@ -54,8 +54,6 @@ function setupCommandHandler(client) {
 
       if (interaction.customId === "view_base") {
       
-        const fs = require("fs");
-      
         const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
         const current = data.current || {};
       
@@ -74,10 +72,10 @@ function setupCommandHandler(client) {
       
           text += `📍 Base ${base}\n`;
       
-          if (info.equipe1 !== undefined) text += `E1: ${info.equipe1}\n`;
-          if (info.equipe2 !== undefined) text += `E2: ${info.equipe2}\n`;
-          if (info.equipe3 !== undefined) text += `E3: ${info.equipe3}\n`;
-          if (info.equipe4 !== undefined) text += `E4: ${info.equipe4}\n`;
+          if (info.equipe1 !== null) text += `E1: ${info.equipe1}\n`;
+          if (info.equipe2 !== null) text += `E2: ${info.equipe2}\n`;
+          if (info.equipe3 !== null) text += `E3: ${info.equipe3}\n`;
+          if (info.equipe4 !== null) text += `E4: ${info.equipe4}\n`;
       
           if (info.commentaire) {
             text += `📝 ${info.commentaire}\n`;
@@ -143,10 +141,21 @@ function setupCommandHandler(client) {
           commentaire
         });
 
-        return interaction.reply({
-          content: `✅ Base ${base} enregistrée`,
-          ephemeral: true
-        });
+        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+          
+        if (!data.current) data.current = {};
+          data.current[base] = {
+            equipe1,
+            commentaire,
+            notes: []
+          };
+          
+          fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+          
+          return interaction.reply({
+            content: `✅ Base ${base} enregistrée`,
+            ephemeral: true
+          });
       }
     }
 
