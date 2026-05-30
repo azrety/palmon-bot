@@ -1,14 +1,14 @@
 const fs = require("fs");
 function loadData() {
   try {
-    return JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+    return JSON.parse(fs.readFileSync(".src/data/arctique.json", "utf8"));
   } catch (e) {
     return { current: {}, archive: [] };
   }
 }
 
 function saveData(data) {
-  fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+  fs.writeFileSync(".src/data/arctique.json", JSON.stringify(data, null, 2));
 }
 
 const commands = [
