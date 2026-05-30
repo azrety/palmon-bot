@@ -84,7 +84,6 @@ function setupCommandHandler(client) {
           if (info.equipe1) text += `E1: ${info.equipe1}\n`;
           if (info.equipe2) text += `E2: ${info.equipe2}\n`;
           if (info.equipe3) text += `E3: ${info.equipe3}\n`;
-          if (info.equipe4) text += `E4: ${info.equipe4}\n`;
       
           if (info.commentaire) {
             text += `📝 ${info.commentaire}\n`;
@@ -144,7 +143,6 @@ function setupCommandHandler(client) {
         const equipe1 = interaction.fields.getTextInputValue("equipe1");
         const equipe2 = interaction.fields.getTextInputValue("equipe2");
         const equipe3 = interaction.fields.getTextInputValue("equipe3");
-        const equipe4 = interaction.fields.getTextInputValue("equipe4");
         const commentaire = interaction.fields.getTextInputValue("commentaire");
         
         console.log("📥 Données reçues :", {
@@ -152,7 +150,6 @@ function setupCommandHandler(client) {
           equipe1,
           equipe2,
           equipe3,
-          equipe4,
           commentaire
         });
 
@@ -162,7 +159,6 @@ function setupCommandHandler(client) {
           equipe1: equipe1 || null,
           equipe2: equipe2 || null,
           equipe3: equipe3 || null,
-          equipe4: equipe4 || null,
           commentaire: commentaire || null,
           notes: []
         };
