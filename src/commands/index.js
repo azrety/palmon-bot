@@ -53,8 +53,9 @@ function setupCommandHandler(client) {
       }
 
       if (interaction.customId === "view_base") {
+  
         return interaction.reply({
-          content: "🔍 Bouton Consulter détecté !",
+          content: "🔍 Envoie le numéro de la base à consulter (fonction à venir)",
           ephemeral: true
         });
       }
