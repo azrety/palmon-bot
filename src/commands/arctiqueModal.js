@@ -28,9 +28,15 @@ function createAddModal() {
     .setStyle(TextInputStyle.Short)
     .setRequired(false);
 
+  const equipe3 = new TextInputBuilder()
+    .setCustomId("equipe3")
+    .setLabel("Equipe 3")
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
+
   const commentaire = new TextInputBuilder()
     .setCustomId("commentaire")
-    .setLabel("Commentaire")
+    .setLabel("Commentaire (pseudo, membre 1ALL KO ...)")
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(false);
 
@@ -38,6 +44,7 @@ function createAddModal() {
     new ActionRowBuilder().addComponents(base),
     new ActionRowBuilder().addComponents(equipe1),
     new ActionRowBuilder().addComponents(equipe2),
+    new ActionRowBuilder().addComponents(equipe3),
     new ActionRowBuilder().addComponents(commentaire)
   );
 
