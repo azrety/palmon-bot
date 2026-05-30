@@ -8,7 +8,7 @@ const {
 const DATA_PATH = "./src/data/arctique.json";
 const PAGE_SIZE = 10;
 
-// -------------------- DATA --------------------
+// ---------------- DATA ----------------
 function loadData() {
   try {
     return JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
@@ -21,7 +21,7 @@ function saveData(data) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 }
 
-// -------------------- TABLE --------------------
+// ---------------- TABLE ----------------
 function formatTable(entries) {
   let text = "```\nBase | E1   | E2   | E3   | Notes\n";
   text += "-----+------+-------+------+----------------\n";
@@ -39,7 +39,7 @@ function formatTable(entries) {
   return text;
 }
 
-// -------------------- PAGINATION --------------------
+// ---------------- PAGINATION ----------------
 function getPage(entries, page) {
   const start = page * PAGE_SIZE;
   return entries.slice(start, start + PAGE_SIZE);
@@ -49,14 +49,13 @@ function getMaxPage(entries) {
   return Math.max(0, Math.ceil(entries.length / PAGE_SIZE) - 1);
 }
 
-// -------------------- VIEW --------------------
+// ---------------- VIEW ----------------
 async function arctiqueView(interaction, page = 0) {
   const data = loadData();
   const entries = Object.entries(data.current || {});
   const maxPage = getMaxPage(entries);
 
   const pageData = getPage(entries, page);
-
   const text = formatTable(pageData);
 
   const row = new ActionRowBuilder().addComponents(
@@ -76,10 +75,11 @@ async function arctiqueView(interaction, page = 0) {
   return interaction.reply({
     content: `📊 **Bases Arctique (page ${page + 1}/${maxPage + 1})**\n\n${text}`,
     components: [row],
+    flags: 64
   });
 }
 
-// -------------------- PAGINATION HANDLERS --------------------
+// ---------------- PAGINATION ----------------
 async function arctiqueNext(interaction) {
   const page = parseInt(interaction.customId.split("_")[2]);
   return arctiqueView(interaction, page + 1);
@@ -90,19 +90,55 @@ async function arctiquePrev(interaction) {
   return arctiqueView(interaction, page - 1);
 }
 
-// -------------------- EXPORT --------------------
+// ---------------- ARCHIVE PROPRE ----------------
+async function archiveArctique(interaction) {
+  const data = loadData();
+
+  const name = new Date().toISOString().split("T")[0]; // date auto
+
+  data.archive.push({
+    name,
+    date: new Date().toISOString(),
+    data: data.current
+  });
+
+  data.current = {};
+  saveData(data);
+
+  return interaction.reply({
+    content: `📦 Archive créée : **${name}**`,
+    flags: 64
+  });
+}
+
+// ---------------- EXPORT ----------------
 module.exports = {
   name: "arctique",
 
   async execute(interaction) {
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId("add_base").setLabel("📝 Ajouter").setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId("view_base").setLabel("🔍 Consulter").setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId("archive_data").setLabel("📦 Archiver").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId("reset_data").setLabel("🔄 Reset").setStyle(ButtonStyle.Danger)
+      new ButtonBuilder()
+        .setCustomId("add_base")
+        .setLabel("📝 Ajouter")
+        .setStyle(ButtonStyle.Success),
+
+      new ButtonBuilder()
+        .setCustomId("view_base")
+        .setLabel("🔍 Consulter")
+        .setStyle(ButtonStyle.Primary),
+
+      new ButtonBuilder()
+        .setCustomId("archiveArctique")
+        .setLabel("📦 Archiver")
+        .setStyle(ButtonStyle.Secondary),
+
+      new ButtonBuilder()
+        .setCustomId("reset_data")
+        .setLabel("🔄 Reset")
+        .setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({
+    return interaction.reply({
       content: "📊 Gestion Arctique",
       components: [row]
     });
@@ -110,5 +146,6 @@ module.exports = {
 
   arctiqueView,
   arctiqueNext,
-  arctiquePrev
+  arctiquePrev,
+  archiveArctique
 };
