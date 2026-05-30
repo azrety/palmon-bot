@@ -99,6 +99,10 @@ function buildCommands() {
           .setDescription("Texte optionnel avec le media")
           .setRequired(false)
       ),
+    
+      new SlashCommandBuilder()
+        .setName("arctique")
+        .setDescription("Gestion des bases de arctique"),
 
     new SlashCommandBuilder()
       .setName("concours-teub")
