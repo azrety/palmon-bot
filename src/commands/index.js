@@ -77,23 +77,13 @@ function setupCommandHandler(client) {
         return arctique.arctiquePrev(interaction);
       }
 
-      if (interaction.customId === "archive_data") {
-        const data = loadData();
-
-        data.archive.push({
-          date: new Date().toISOString(),
-          data: data.current
-        });
-
-        data.current = {};
-
-        saveData(data);
-
+     if (interaction.customId === "archive_data") {
         return interaction.reply({
-          content: "📦 Archive OK",
-        
+          content: "📝 Donne un nom à l'archive : utilise `/archive nom:XXX`",
+          ephemeral: true
         });
       }
+    
 
       if (interaction.customId === "reset_data") {
         const data = loadData();
