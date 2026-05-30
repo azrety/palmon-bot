@@ -101,7 +101,7 @@ function setupCommandHandler(client) {
       
         return interaction.reply({
           content: text,
-          flags: 64
+          flags: 0
         });
       }
 
@@ -169,9 +169,21 @@ function setupCommandHandler(client) {
             content: `✅ Base ${base} enregistrée`,
             ephemeral: true
           });
+
+      if (interaction.customId === "view_base") {
+          return arctiqueView(interaction);
+        }
+        
+        if (interaction.customId === "next_page") {
+          return arctiqueNext(interaction);
+        }
+        
+        if (interaction.customId === "prev_page") {
+          return arctiquePrev(interaction);
+        }
       }
     }
-
+      
   });
 }
 
