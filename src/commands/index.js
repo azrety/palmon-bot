@@ -46,12 +46,9 @@ function setupCommandHandler(client) {
     // BOUTONS
     if (interaction.isButton()) {
 
-      if (interaction.customId === "add_base") {
-        return interaction.reply({
-          content: "📝 Bouton Ajouter détecté !",
-          ephemeral: true
-        });
-      }
+    if (interaction.customId === "add_base") {
+       return interaction.showModal(createAddModal());
+    }
 
       if (interaction.customId === "view_base") {
         return interaction.reply({
@@ -59,7 +56,26 @@ function setupCommandHandler(client) {
           ephemeral: true
         });
       }
+      if (interaction.isModalSubmit()) {
 
+  if (interaction.customId === "add_base_modal") {
+
+    const base = interaction.fields.getTextInputValue("base");
+    const equipe1 = interaction.fields.getTextInputValue("equipe1");
+    const commentaire = interaction.fields.getTextInputValue("commentaire");
+
+    console.log("📥 Données reçues :", {
+      base,
+      equipe1,
+      commentaire
+    });
+
+    return interaction.reply({
+      content: `✅ Base ${base} enregistrée`,
+      ephemeral: true
+    });
+  }
+}
     }
 
   });
