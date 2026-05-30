@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const commands = [
   require("./addplayer"),
   require("./concours-teub"),
@@ -53,6 +55,34 @@ function setupCommandHandler(client) {
       if (interaction.customId === "view_base") {
         return interaction.reply({
           content: "🔍 Bouton Consulter détecté !",
+          ephemeral: true
+        });
+      }
+
+      if (interaction.customId === "archive_data") {
+        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        const archiveEntry = {
+          date: new Date().toISOString().split("T")[0],
+          data: data.current || {}
+        };
+        data.archive = data.archive || [];
+        data.archive.push(archiveEntry);
+        data.current = {}; // reset journalier
+        fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+        
+        return interaction.reply({
+          content: "📦 Données archivées avec succès !",
+          ephemeral: true
+        });
+      }
+
+      if (interaction.customId === "reset_data") {
+        const data = JSON.parse(fs.readFileSync("./data/arctique.json", "utf8"));
+        data.current = {};
+        fs.writeFileSync("./data/arctique.json", JSON.stringify(data, null, 2));
+      
+        return interaction.reply({
+          content: "🔄 Données réinitialisées !",
           ephemeral: true
         });
       }
