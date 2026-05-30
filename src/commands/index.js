@@ -10,7 +10,8 @@ const commands = [
   require("./spammedia"),
   require("./stats"),
   require("./top"),
-  require("./upgrade")
+  require("./upgrade"),
+  require("./arctique")
 ];
 
 const commandMap = new Map(commands.map(command => [command.name, command]));
