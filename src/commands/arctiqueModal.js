@@ -36,7 +36,7 @@ function createAddModal() {
 
   const commentaire = new TextInputBuilder()
     .setCustomId("commentaire")
-    .setLabel("Commentaire")
+    .setLabel("Commentaire (Pseudo, base 4?, KO membre 1ALL...)")
     .setStyle(TextInputStyle.Paragraph)
     .setRequired(false);
 
