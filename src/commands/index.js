@@ -92,7 +92,6 @@ function setupCommandHandler(client) {
 
         return interaction.reply({
           content: "🔄 Reset OK",
-          ephemeral: true
         });
       }
     }
@@ -122,7 +121,6 @@ function setupCommandHandler(client) {
 
         return interaction.reply({
           content: `✅ Base ${base} enregistrée`,
-          ephemeral: true
         });
       }
     }
