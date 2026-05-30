@@ -128,10 +128,16 @@ function setupCommandHandler(client) {
                   
           saveData(data);
         
-          return interaction.reply({
+          await interaction.reply({
             content: `✅ Base ${base} enregistrée`,
             ephemeral: true
           });
+          
+          const logChannel = interaction.guild.channels.cache.get("ID_DU_CHANNEL");
+          
+          if (logChannel) {
+            logChannel.send(`📊 Nouvelle base ajoutée : **${base}**`);
+          }
 
       if (interaction.customId === "view_base") {
           return arctiqueView(interaction);
