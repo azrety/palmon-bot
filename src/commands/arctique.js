@@ -76,7 +76,6 @@ async function arctiqueView(interaction, page = 0) {
   return interaction.reply({
     content: `📊 **Bases Arctique (page ${page + 1}/${maxPage + 1})**\n\n${text}`,
     components: [row],
-    ephemeral: true
   });
 }
 
