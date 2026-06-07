@@ -9,11 +9,18 @@ const { postSheetApi } = require("../services/sheets");
 module.exports = {
   name: "history",
   async execute(interaction) {
-    await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
 
-    const name = interaction.options.getString("name");
-    const data = await postSheetApi({ action: "history", name });
+  const name = interaction.options.getString("name");
 
+  // 🔔 Message public dans le salon
+  await interaction.channel.send(
+    `🕵️ ${interaction.user} est allé fouiller dans les archives de **${name}** 👀`
+  );
+
+  const data = await postSheetApi({ action: "history", name });
+
+  // 🔔 Message privé à l'utilisateur
     if (!data?.success || !data.history?.length) {
       return interaction.editReply("❌ Aucun historique");
     }
