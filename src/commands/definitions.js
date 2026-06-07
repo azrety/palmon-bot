@@ -99,6 +99,19 @@ function buildCommands() {
           .setDescription("Texte optionnel avec le media")
           .setRequired(false)
       ),
+    
+      new SlashCommandBuilder()
+        .setName("arctique")
+        .setDescription("Gestion des bases de arctique"),
+    
+    new SlashCommandBuilder()
+      .setName("archivearctique")
+      .setDescription("Créer une archive des bases arctique")
+      .addStringOption(o =>
+        o.setName("nom")
+          .setDescription("Nom de la guilde adverse pour archive arctique")
+          .setRequired(true)
+      ),
 
     new SlashCommandBuilder()
       .setName("concours-teub")
