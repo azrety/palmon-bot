@@ -18,6 +18,7 @@ const commands = [
   require("./concours-teub"),
   require("./history"),
   require("./perefloflo"),
+  require("./penguin"),
   require("./players"),
   require("./searchpalmon"),
   require("./spammedia"),

@@ -80,6 +80,15 @@ function buildCommands() {
       .setDescription("Introduction du Père Floflo"),
 
     new SlashCommandBuilder()
+      .setName("penguin")
+      .setDescription("Alerter un membre pour un pingouin roi spectral")
+      .addUserOption(o =>
+        o.setName("membre")
+          .setDescription("Membre à prévenir")
+          .setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
       .setName("spammedia")
       .setDescription("Envoie plusieurs fois une image/gif ou un media aléatoire local")
       .addIntegerOption(o =>
