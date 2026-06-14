@@ -45,7 +45,7 @@ module.exports = {
         right = `⚖️ ${right}`;
       }
 
-      const suffix = isIgnored ? " *(non compté : au moins un T4 vaut 0)*" : "";
+      const suffix = isIgnored ? " *(En raison d'une équipe inexistante, le score n'est pas compté ;) )*" : "";
       return `• **${stat.toUpperCase()}** → ${left} ⚔️ ${right}${suffix}`;
     });
 
