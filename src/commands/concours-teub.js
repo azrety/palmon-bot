@@ -20,15 +20,21 @@ module.exports = {
       return interaction.editReply("❌ Joueur introuvable");
     }
 
+    const getScore = (player, stat) => Number(player[stat]) || 0;
+    const countT4 = getScore(p1, "t4") !== 0 && getScore(p2, "t4") !== 0;
     const stats = ["t1", "t2", "t3", "t4"];
     const lines = stats.map(stat => {
-      const v1 = p1[stat] || 0;
-      const v2 = p2[stat] || 0;
+      const v1 = getScore(p1, stat);
+      const v2 = getScore(p2, stat);
+      const isIgnored = stat === "t4" && !countT4;
 
       let left = `${p1.name}: ${v1}`;
       let right = `${p2.name}: ${v2}`;
 
-      if (v1 > v2) {
+      if (isIgnored) {
+        left = `⏭️ ${left}`;
+        right = `⏭️ ${right}`;
+      } else if (v1 > v2) {
         left = `🟢 ${left}`;
         right = `🔴 ${right}`;
       } else if (v2 > v1) {
@@ -39,11 +45,13 @@ module.exports = {
         right = `⚖️ ${right}`;
       }
 
-      return `• **${stat.toUpperCase()}** → ${left} ⚔️ ${right}`;
+      const suffix = isIgnored ? " *(non compté : au moins un T4 vaut 0)*" : "";
+      return `• **${stat.toUpperCase()}** → ${left} ⚔️ ${right}${suffix}`;
     });
 
-    const total1 = stats.reduce((acc, s) => acc + (p1[s] || 0), 0);
-    const total2 = stats.reduce((acc, s) => acc + (p2[s] || 0), 0);
+    const countedStats = countT4 ? stats : stats.filter(stat => stat !== "t4");
+    const total1 = countedStats.reduce((acc, s) => acc + getScore(p1, s), 0);
+    const total2 = countedStats.reduce((acc, s) => acc + getScore(p2, s), 0);
     const rawClash = clashs[Math.floor(Math.random() * clashs.length)];
 
     const winnerDynamic =
