@@ -89,17 +89,6 @@ function buildCommands() {
       ),
 
     new SlashCommandBuilder()
-      .setName("pub")
-      .setDescription("Lancer une pause pub avec des medias aleatoires du dossier pub/")
-      .addIntegerOption(o =>
-        o.setName("nombre")
-          .setDescription("Nombre de pubs a envoyer, entre 1 et 10")
-          .setMinValue(1)
-          .setMaxValue(10)
-          .setRequired(true)
-      ),
-
-    new SlashCommandBuilder()
       .setName("spammedia")
       .setDescription("Envoie plusieurs fois une image/gif ou un media aléatoire local")
       .addIntegerOption(o =>

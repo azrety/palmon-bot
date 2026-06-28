@@ -20,7 +20,6 @@ const commands = [
   require("./perefloflo"),
   require("./penguin"),
   require("./players"),
-  require("./pub"),
   require("./searchpalmon"),
   require("./spammedia"),
   require("./stats"),
