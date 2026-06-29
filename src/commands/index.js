@@ -17,6 +17,7 @@ const commands = [
   require("./addplayer"),
   require("./concours-teub"),
   require("./history"),
+  require("./palmons"),
   require("./perefloflo"),
   require("./penguin"),
   require("./players"),

@@ -13,6 +13,15 @@ function buildCommands() {
       ),
 
     new SlashCommandBuilder()
+      .setName("palmons")
+      .setDescription("Voir les Palmons d'un pseudo dans la pouponniere")
+      .addStringOption(o =>
+        o.setName("pseudo")
+          .setDescription("Pseudo a rechercher")
+          .setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
       .setName("addplayer")
       .setDescription("Ajouter un joueur")
       .addStringOption(o =>
