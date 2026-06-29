@@ -1,4 +1,9 @@
-const { EmbedBuilder } = require("discord.js");
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder
+} = require("discord.js");
 const { getAttributesMap, getSheetData } = require("../services/sheets");
 const { getEmoji, getName } = require("../utils/palmon");
 
@@ -17,6 +22,15 @@ function formatMons(mons, attributes) {
 
     return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
   }).join("\n");
+}
+
+function formatMon(idValue, attributes) {
+  const id = String(idValue).padStart(3, "0");
+  const attr = attributes[id];
+
+  if (!attr) return `• ❔ ${id} [inconnu]`;
+
+  return `• ${getEmoji(attr.category)} ${attr.id} [${attr.category}] (${getName(attr)})`;
 }
 
 module.exports = {
@@ -38,15 +52,67 @@ module.exports = {
       return interaction.editReply("❌ Aucun pseudo trouvé dans la pouponnière");
     }
 
-    const lines = results.map(p =>
-      `👤 **${p.pseudo}**\n${formatMons(p.mons, attributes)}`
+    const lines = results.length === 1
+      ? results[0].mons.map(m => formatMon(m, attributes))
+      : results.map(p => `👤 **${p.pseudo}**\n${formatMons(p.mons, attributes)}`);
+
+    const perPage = results.length === 1 ? 8 : 4;
+    let page = 0;
+    const maxPage = Math.ceil(lines.length / perPage) - 1;
+
+    const generateEmbed = () => {
+      const slice = lines.slice(page * perPage, (page + 1) * perPage);
+
+      return new EmbedBuilder()
+        .setTitle(`🥚 Palmons de ${pseudo}`)
+        .setColor(0xFFD700)
+        .setDescription(slice.join("\n\n") || "Aucun Palmon")
+        .setFooter({ text: `Page ${page + 1}/${maxPage + 1}` });
+    };
+
+    const row = () => new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("palmons_prev")
+        .setLabel("⬅️")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === 0),
+      new ButtonBuilder()
+        .setCustomId("palmons_next")
+        .setLabel("➡️")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === maxPage)
     );
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🥚 Palmons de ${pseudo}`)
-      .setColor(0xFFD700)
-      .setDescription(lines.join("\n\n"));
+    const components = maxPage > 0 ? [row()] : [];
 
-    return interaction.editReply({ embeds: [embed] });
+    const msg = await interaction.editReply({
+      embeds: [generateEmbed()],
+      components
+    });
+
+    if (maxPage <= 0) return;
+
+    const collector = msg.createMessageComponentCollector({ time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.user.id !== interaction.user.id) {
+        return i.reply({ content: "❌ Pas pour toi", ephemeral: true });
+      }
+
+      if (i.customId === "palmons_prev") page--;
+      if (i.customId === "palmons_next") page++;
+
+      if (page < 0) page = 0;
+      if (page > maxPage) page = maxPage;
+
+      await i.update({
+        embeds: [generateEmbed()],
+        components: [row()]
+      });
+    });
+
+    collector.on("end", () => {
+      interaction.editReply({ components: [] }).catch(() => {});
+    });
   }
 };
