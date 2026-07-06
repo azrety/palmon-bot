@@ -10,6 +10,8 @@ module.exports = {
     const j1 = interaction.options.getString("joueur1");
     const j2 = interaction.options.getString("joueur2");
     const data = await postSheetApi({ action: "getplayers" });
+    console.log(JSON.stringify(data, null, 2));
+    
 
     if (!data?.success) return interaction.editReply("❌ API error");
 
