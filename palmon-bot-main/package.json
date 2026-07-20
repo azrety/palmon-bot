@@ -1,0 +1,16 @@
+{
+  "name": "palmon-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.0.0",
+    "dotenv": "^17.4.2",
+    "google-translate-api-x": "^10.7.2",
+    "luxon": "^3.7.2",
+    "node-fetch": "^2.6.7"
+  }
+}
