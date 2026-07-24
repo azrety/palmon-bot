@@ -1,5 +1,6 @@
 const { fight } = require("./engine");
 const { fightStart, fightResult } = require("./messages");
+const { randomComment } = require("./random");
 
 
 function wait(seconds){
@@ -19,6 +20,11 @@ async function playMatch(match, interaction, delai){
         fightStart(match.p1, match.p2)
     );
 
+    await wait(delai);
+
+    await interaction.channel.send(
+        randomComment()
+    );
 
     await wait(delai);
 

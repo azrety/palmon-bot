@@ -1,31 +1,33 @@
 function shuffle(array){
 
-return [...array]
-.sort(()=>Math.random()-0.5);
+    return [...array]
+        .sort(() => Math.random() - 0.5);
 
 }
 
 
 function randomComment(){
 
-const comments = [
+    const comments = [
 
-"🔥 Le public devient complètement fou !",
-"💥 Une attaque dévastatrice dans l'arène !",
-"⚔️ Le duel est légendaire !",
-"🍆 Le stade tremble devant ce combat !"
+        "🔥 Le public devient complètement fou !",
+        "💥 Une attaque dévastatrice vient de partir !",
+        "⚔️ Le stade tremble devant ce duel !",
+        "🍆 Une puissance incroyable est libérée !",
+        "😱 Personne ne s'attendait à ça !",
+        "🏟️ Les supporters hurlent dans l'arène !"
 
-];
+    ];
 
 
-return comments[
-Math.floor(Math.random()*comments.length)
-];
+    return comments[
+        Math.floor(Math.random() * comments.length)
+    ];
 
 }
 
 
-module.exports={
-shuffle,
-randomComment
+module.exports = {
+    shuffle,
+    randomComment
 };
