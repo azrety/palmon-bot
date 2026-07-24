@@ -1,7 +1,11 @@
 const { fight } = require("./engine");
 const { fightStart, fightResult, roundStart, roundEnd } = require("./messages");
-const { randomComment } = require("./random");
-
+const { 
+    randomFrom,
+    fightStartComments,
+    battleComments,
+    victoryComments
+} = require("./random");
 
 function wait(seconds){
 
@@ -16,6 +20,8 @@ function wait(seconds){
 async function playMatch(match, interaction, delai){
 
 
+    // Début du combat
+
     await interaction.channel.send(
         fightStart(match.p1, match.p2)
     );
@@ -24,8 +30,22 @@ async function playMatch(match, interaction, delai){
     await wait(delai);
 
 
+
+    // Message entrée combattants
+
     await interaction.channel.send(
-        randomComment()
+        randomFrom(fightStartComments)
+    );
+
+
+    await wait(delai);
+
+
+
+    // Action pendant le combat
+
+    await interaction.channel.send(
+        randomFrom(battleComments)
     );
 
 
@@ -39,6 +59,19 @@ async function playMatch(match, interaction, delai){
     );
 
 
+
+    // Victoire
+
+    await interaction.channel.send(
+        randomFrom(victoryComments)
+    );
+
+
+    await wait(delai);
+
+
+
+    // Résultat final
 
     await interaction.channel.send(
         fightResult(result)

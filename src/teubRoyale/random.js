@@ -6,23 +6,18 @@ function shuffle(array){
 }
 
 
+function randomFrom(array){
+
+    return array[
+        Math.floor(Math.random() * array.length)
+    ];
+
+}
+
+
 function randomComment(){
 
-    const comments = [
-
-        "🔥 Le public devient complètement fou !",
-        "💥 Une attaque dévastatrice vient de partir !",
-        "⚔️ Le stade tremble devant ce duel !",
-        "🍆 Une puissance incroyable est libérée !",
-        "😱 Personne ne s'attendait à ça !",
-        "🏟️ Les supporters hurlent dans l'arène !"
-
-    ];
-
-
-    return comments[
-        Math.floor(Math.random() * comments.length)
-    ];
+    return randomFrom(battleComments);
 
 }
 
@@ -104,5 +99,10 @@ const defeatComments = [
 
 module.exports = {
     shuffle,
-    randomComment
+    randomFrom,
+    randomComment,
+    fightStartComments,
+    battleComments,
+    victoryComments,
+    defeatComments
 };
