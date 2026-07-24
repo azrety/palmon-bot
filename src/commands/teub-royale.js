@@ -1,7 +1,6 @@
 const { postSheetApi } = require("../services/sheets");
-const { createBracket } = require("../teubRoyale/bracket");
+const { createBracket, getWinners } = require("../teubRoyale/bracket");
 const { fight } = require("../teubRoyale/engine");
-const { getWinners } = require("../teubRoyale/bracket");
 
 module.exports = {
   name: "teub-royale",
@@ -75,17 +74,8 @@ const bracket = createBracket(players);
         }
 
 
-        const champion = round[0].p1;
+     const champion = round[0];
 
-const lines = bracket.map((m, i) => {
-
-    if (!m.p2) {
-        return `${i + 1}. 🛡️ ${m.p1.name} est exempt / gets a bye`;
-    }
-
-    return `${i + 1}. ⚔️ ${m.p1.name} vs ${m.p2.name}`;
-
-});
 
 await interaction.editReply(
 `

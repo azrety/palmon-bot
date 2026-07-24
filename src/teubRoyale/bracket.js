@@ -1,15 +1,9 @@
-function shuffle(array){
-
-return [...array]
-.sort(()=>Math.random()-0.5);
-
-}
-
+const { shuffle } = require("./random");
 
 
 function createBracket(players){
 
-const shuffled=shuffle(players);
+const shuffled = shuffle(players);
 
 const matches=[];
 
@@ -34,7 +28,6 @@ return matches;
 
 function getWinners(matches, fight){
 
-
 const winners=[];
 
 
@@ -49,7 +42,7 @@ continue;
 }
 
 
-const result=fight(
+const result = fight(
 match.p1,
 match.p2
 );
