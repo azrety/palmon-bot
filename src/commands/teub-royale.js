@@ -82,36 +82,35 @@ module.exports = {
 
 
 
-        // Déroulement des rounds
+       // Déroulement des rounds
 
-        while (round.length > 1) {
-
-
-            const winners = getWinners(
-                round,
-                fight
-            );
+let champion = null;
 
 
-            // Si un seul joueur reste = champion
-
-            if (winners.length === 1) {
-
-                round = winners;
-                break;
-
-            }
+while (!champion) {
 
 
-            // Nouveau tour
-
-            round = createBracket(winners);
-
-        }
-
+    const winners = getWinners(
+        round,
+        fight
+    );
 
 
-        const champion = round[0];
+    // Un seul gagnant restant
+
+    if (winners.length === 1) {
+
+        champion = winners[0];
+        break;
+
+    }
+
+
+    // Nouveau round
+
+    round = createBracket(winners);
+
+}
 
 
 
