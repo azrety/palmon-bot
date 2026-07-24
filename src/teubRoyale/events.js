@@ -48,8 +48,20 @@ async function playMatch(match, interaction, delai){
 
 }
 
+async function startRound(roundNumber, interaction){
+
+        await interaction.channel.send(
+    `
+    🔥 ROUND ${roundNumber}
+
+    ⚔️ Les combats commencent !
+    `
+        );
+
+}
 
 
 module.exports = {
-    playMatch
+    playMatch,
+    startRound
 };

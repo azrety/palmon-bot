@@ -1,7 +1,7 @@
 const { postSheetApi } = require("../services/sheets");
 const { createBracket, getWinners } = require("../teubRoyale/bracket");
 const { fight } = require("../teubRoyale/engine");
-const { playMatch } = require("../teubRoyale/events");
+const { playMatch, startRound } = require("../teubRoyale/events");
 
 
 module.exports = {
@@ -86,9 +86,14 @@ module.exports = {
        // Déroulement des rounds
 
         let champion = null;
+        let roundNumber = 1;
 
         while (!champion) {
 
+            await startRound(
+                roundNumber,
+                interaction
+            );
 
             const winners = [];
 
@@ -127,6 +132,7 @@ module.exports = {
 
 
             round = createBracket(winners);
+            roundNumber++;
 
 
             await interaction.channel.send(
