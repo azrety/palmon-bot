@@ -34,12 +34,16 @@ loser=player1;
 
 
 return {
-
     winner,
     loser,
 
-    winnerScore: winner === player1 ? score1 : score2,
-    loserScore: loser === player1 ? score1 : score2
+    winnerScore: Number(
+        (winner === player1 ? score1 : score2).toFixed(2)
+    ),
+
+    loserScore: Number(
+        (loser === player1 ? score1 : score2).toFixed(2)
+    )
 
 };
 

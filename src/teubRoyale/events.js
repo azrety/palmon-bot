@@ -1,5 +1,5 @@
 const { fight } = require("./engine");
-const { fightStart, fightResult } = require("./messages");
+const { fightStart, fightResult, roundStart } = require("./messages");
 const { randomComment } = require("./random");
 
 
@@ -20,11 +20,14 @@ async function playMatch(match, interaction, delai){
         fightStart(match.p1, match.p2)
     );
 
+
     await wait(delai);
+
 
     await interaction.channel.send(
         randomComment()
     );
+
 
     await wait(delai);
 
@@ -34,6 +37,7 @@ async function playMatch(match, interaction, delai){
         match.p1,
         match.p2
     );
+
 
 
     await interaction.channel.send(
@@ -48,20 +52,20 @@ async function playMatch(match, interaction, delai){
 
 }
 
+
+
 async function startRound(roundNumber, interaction){
 
-        await interaction.channel.send(
-    `
-    🔥 ROUND ${roundNumber}
-
-    ⚔️ Les combats commencent !
-    `
-        );
+    await interaction.channel.send(
+        roundStart(roundNumber)
+    );
 
 }
 
 
+
 module.exports = {
     playMatch,
-    startRound
+    startRound,
+    wait
 };
