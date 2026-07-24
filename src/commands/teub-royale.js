@@ -130,18 +130,18 @@ module.exports = {
 
 
 
-            round = createBracket(winners);
-            roundNumber++;
+           await endRound(
+            roundNumber,
+            delai,
+            interaction
+        );
 
 
-          await endRound(
-                roundNumber,
-                delai,
-                interaction
-            );
+        await wait(delai);
 
 
-            await wait(delai);
+        round = createBracket(winners);
+        roundNumber++;
 
         }
 
