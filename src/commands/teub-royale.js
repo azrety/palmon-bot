@@ -1,4 +1,6 @@
 const { postSheetApi } = require("../services/sheets");
+const { createBracket } = require("../teubRoyale/bracket");
+
 
 module.exports = {
   name: "teub-royale",
@@ -53,24 +55,31 @@ module.exports = {
         );
     }
 
-    await interaction.editReply(
+const bracket = createBracket(players);
 
-        `# 🍆 TEUB ROYALE
+const lines = bracket.map((m, i) => {
 
-        🇫🇷 **${players.length} joueurs participeront.**
+    if (!m.p2) {
+        return `${i + 1}. 🛡️ ${m.p1.name} est exempt / gets a bye`;
+    }
 
-        🇬🇧 **${players.length} players will participate.**
+    return `${i + 1}. ⚔️ ${m.p1.name} vs ${m.p2.name}`;
 
-        Mode : **${mode}**
+});
 
-        Délai : **${delai}s**
+await interaction.editReply(
 
-        ---
+`# 🍆 TEUB ROYALE
 
-        ${players.map(p => `• ${p.name}`).join("\n")}
+🇫🇷 Premier tour
 
-        `
-            );
+🇬🇧 First round
 
+---
+
+${lines.join("\n")}
+
+`
+);
         }
 };
