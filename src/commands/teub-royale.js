@@ -1,6 +1,7 @@
 const { postSheetApi } = require("../services/sheets");
 const { createBracket } = require("../teubRoyale/bracket");
-
+const { fight } = require("../teubRoyale/engine");
+const { getWinners } = require("../teubRoyale/bracket");
 
 module.exports = {
   name: "teub-royale",
@@ -57,6 +58,25 @@ module.exports = {
 
 const bracket = createBracket(players);
 
+        let round = bracket;
+
+        let tour = 1;
+
+        while(round.length > 1){
+
+        const winners=getWinners(round,fight);
+
+
+        round=createBracket(winners);
+
+
+        tour++;
+
+        }
+
+
+        const champion = round[0].p1;
+
 const lines = bracket.map((m, i) => {
 
     if (!m.p2) {
@@ -68,16 +88,12 @@ const lines = bracket.map((m, i) => {
 });
 
 await interaction.editReply(
+`
+# 🍆 TEUB ROYALE
 
-`# 🍆 TEUB ROYALE
+🏆 Champion :
 
-🇫🇷 Premier tour
-
-🇬🇧 First round
-
----
-
-${lines.join("\n")}
+${champion.name}
 
 `
 );

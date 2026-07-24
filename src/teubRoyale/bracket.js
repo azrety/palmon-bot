@@ -1,31 +1,73 @@
-function shuffle(array) {
-    return [...array]
-        .map(v => ({ v, r: Math.random() }))
-        .sort((a, b) => a.r - b.r)
-        .map(o => o.v);
+function shuffle(array){
+
+return [...array]
+.sort(()=>Math.random()-0.5);
+
 }
 
-function createBracket(players) {
 
-    const shuffled = shuffle(players);
 
-    const matches = [];
+function createBracket(players){
 
-    for (let i = 0; i < shuffled.length; i += 2) {
+const shuffled=shuffle(players);
 
-        const p1 = shuffled[i];
-        const p2 = shuffled[i + 1];
+const matches=[];
 
-        matches.push({
-            p1,
-            p2: p2 || null,
-            winner: null
-        });
-    }
 
-    return matches;
+for(let i=0;i<shuffled.length;i+=2){
+
+matches.push({
+
+p1: shuffled[i],
+p2: shuffled[i+1] || null
+
+});
+
 }
 
-module.exports = {
-    createBracket
+
+return matches;
+
+}
+
+
+
+function getWinners(matches, fight){
+
+
+const winners=[];
+
+
+for(const match of matches){
+
+
+if(!match.p2){
+
+winners.push(match.p1);
+continue;
+
+}
+
+
+const result=fight(
+match.p1,
+match.p2
+);
+
+
+winners.push(result.winner);
+
+
+}
+
+
+return winners;
+
+}
+
+
+
+module.exports={
+createBracket,
+getWinners
 };
