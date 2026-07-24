@@ -143,6 +143,20 @@ function buildCommands() {
       ),
 
       new SlashCommandBuilder()
+      .setName("concours-teub")
+      .setDescription("Comparer 2 joueurs")
+      .addStringOption(o =>
+        o.setName("joueur1")
+          .setDescription("Premier joueur")
+          .setRequired(true)
+      )
+      .addStringOption(o =>
+        o.setName("joueur2")
+          .setDescription("Deuxième joueur")
+          .setRequired(true)
+      ),
+
+        new SlashCommandBuilder()
         .setName("teub-royale")
         .setDescription("Lancer une Teub Royale")
         .addStringOption(o =>
@@ -154,12 +168,28 @@ function buildCommands() {
               { name: "Random", value: "random" }
             )
         )
+        .addStringOption(o =>
+          o.setName("controle")
+            .setDescription("Mode de gestion du tournoi")
+            .setRequired(true)
+            .addChoices(
+              { name: "Automatique", value: "auto" },
+              { name: "Présentateur", value: "presentateur" }
+            )
+        )
         .addIntegerOption(o =>
           o.setName("delai")
             .setDescription("Délai entre les combats (secondes)")
             .setRequired(false)
             .setMinValue(1)
             .setMaxValue(30)
+        )
+        .addIntegerOption(o =>
+          o.setName("delai_round")
+            .setDescription("Temps entre les rounds (secondes)")
+            .setRequired(false)
+            .setMinValue(1)
+            .setMaxValue(300)
         )
         .addStringOption(o =>
           o.setName("joueurs")
@@ -172,20 +202,10 @@ function buildCommands() {
             .setRequired(false)
         ),
 
+        new SlashCommandBuilder()
+        .setName("teub-next")
+        .setDescription("Lancer le prochain combat de la Teub Royale"),
 
-      new SlashCommandBuilder()
-        .setName("concours-teub")
-        .setDescription("Comparer 2 joueurs")
-        .addStringOption(o =>
-          o.setName("joueur1")
-            .setDescription("Premier joueur")
-            .setRequired(true)
-        )
-        .addStringOption(o =>
-          o.setName("joueur2")
-            .setDescription("Deuxième joueur")
-            .setRequired(true)
-        )
   ].map(command => command.toJSON());
 }
 

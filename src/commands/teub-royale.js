@@ -1,6 +1,7 @@
 const { postSheetApi } = require("../services/sheets");
 const { createBracket } = require("../teubRoyale/bracket");
 const { playMatch, startRound, endRound, wait } = require("../teubRoyale/events");
+const { createSession } = require("../teubRoyale/session");
 
 
 module.exports = {
@@ -12,7 +13,12 @@ module.exports = {
 
 
         const mode = interaction.options.getString("mode");
+
+        const controle = interaction.options.getString("controle");
+
         const delai = interaction.options.getInteger("delai") ?? 5;
+
+        const delaiRound = interaction.options.getInteger("delai_round") ?? 10;
 
         const joueursOption = interaction.options.getString("joueurs");
         const exclureOption = interaction.options.getString("exclure");
@@ -80,7 +86,54 @@ module.exports = {
 
         let round = createBracket(players);
 
+        // MODE PRESENTATEUR 🎙️
 
+        if(controle === "presentateur"){
+
+
+            createSession({
+
+                mode,
+
+                delai,
+
+                delaiRound,
+
+                roundNumber:1,
+
+                round,
+
+                winners:[],
+
+                currentMatch:0,
+
+                interactionChannel: interaction.channel.id
+
+            });
+
+
+            return interaction.editReply(
+        `
+        🍆 TEUB ROYALE
+
+        🎙️ MODE PRÉSENTATEUR ACTIVÉ
+
+        🇫🇷 Le tournoi est prêt !
+        🇬🇧 The tournament is ready!
+
+
+        🔥 ROUND 1
+
+
+        Utilisez :
+
+        /teub-next
+
+        pour lancer le prochain combat.
+        `
+            );
+
+        }
 
        // Déroulement des rounds
 
