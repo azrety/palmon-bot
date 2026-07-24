@@ -35,11 +35,11 @@ loser=player1;
 
 return {
 
-winner,
-loser,
+    winner,
+    loser,
 
-score1,
-score2
+    winnerScore: winner === player1 ? score1 : score2,
+    loserScore: loser === player1 ? score1 : score2
 
 };
 

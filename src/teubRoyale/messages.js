@@ -19,8 +19,9 @@ return `
 ✅ ${result.winner.name} gagne !
 
 📊 Score :
-${result.winner.name} : ${result.score1}
-${result.loser.name} : ${result.score2}
+
+${result.winner.name} : ${result.winnerScore}
+${result.loser.name} : ${result.loserScore}
 `;
 
 }
