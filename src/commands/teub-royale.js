@@ -1,7 +1,6 @@
 const { postSheetApi } = require("../services/sheets");
-const { createBracket, getWinners } = require("../teubRoyale/bracket");
-const { fight } = require("../teubRoyale/engine");
-const { playMatch, startRound } = require("../teubRoyale/events");
+const { createBracket } = require("../teubRoyale/bracket");
+const { playMatch, startRound, endRound, wait } = require("../teubRoyale/events");
 
 
 module.exports = {
@@ -135,27 +134,33 @@ module.exports = {
             roundNumber++;
 
 
-            await interaction.channel.send(
-        `
-        ⏸️ Fin du round
-
-        🔥 Nouveau tour dans ${delai} secondes...
-        `
+          await endRound(
+                roundNumber,
+                delai,
+                interaction
             );
 
 
-            await new Promise(resolve =>
-                setTimeout(resolve, delai * 1000)
-            );
+            await wait(delai);
 
         }
 
 
 
-    const { champion: championMessage } = require("../teubRoyale/messages");
+        const { champion: championMessage } = require("../teubRoyale/messages");
 
 
         await interaction.editReply(
+        `
+        🍆 TEUB ROYALE
+
+        🔥 Le tournoi est terminé !
+        🔥 The tournament is over!
+        `
+        );
+
+
+        await interaction.channel.send(
             championMessage(champion)
         );
 

@@ -1,5 +1,5 @@
 const { fight } = require("./engine");
-const { fightStart, fightResult, roundStart } = require("./messages");
+const { fightStart, fightResult, roundStart, roundEnd } = require("./messages");
 const { randomComment } = require("./random");
 
 
@@ -62,10 +62,17 @@ async function startRound(roundNumber, interaction){
 
 }
 
+async function endRound(roundNumber, delai, interaction){
 
+    await interaction.channel.send(
+        roundEnd(roundNumber, delai)
+    );
+
+}
 
 module.exports = {
     playMatch,
     startRound,
+    endRound,
     wait
 };

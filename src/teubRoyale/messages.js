@@ -74,6 +74,16 @@ return `
 
 }
 
+function roundEnd(number, delai){
+
+return `
+⏸️ FIN DU ROUND ${number}
+
+🇫🇷 Préparation du prochain tour dans ${delai} secondes...
+🇬🇧 Preparing the next round in ${delai} seconds...
+`;
+
+}
 
 
 module.exports = {
