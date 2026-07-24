@@ -27,7 +27,8 @@ const commands = [
   require("./stats"),
   require("./top"),
   require("./upgrade"),
-  require("./arctique")
+  require("./arctique"),
+  require("./teub-royale"),
 ];
 
 const commandMap = new Map(commands.map(c => [c.name, c]));
