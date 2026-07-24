@@ -142,19 +142,50 @@ function buildCommands() {
           .setRequired(true)
       ),
 
-    new SlashCommandBuilder()
-      .setName("concours-teub")
-      .setDescription("Comparer 2 joueurs")
-      .addStringOption(o =>
-        o.setName("joueur1")
-          .setDescription("Premier joueur")
-          .setRequired(true)
-      )
-      .addStringOption(o =>
-        o.setName("joueur2")
-          .setDescription("Deuxième joueur")
-          .setRequired(true)
-      )
+      new SlashCommandBuilder()
+        .setName("teub-royale")
+        .setDescription("Lancer une Teub Royale")
+        .addStringOption(o =>
+          o.setName("mode")
+            .setDescription("Mode du tournoi")
+            .setRequired(true)
+            .addChoices(
+              { name: "Bracket", value: "bracket" },
+              { name: "Random", value: "random" }
+            )
+        )
+        .addIntegerOption(o =>
+          o.setName("delai")
+            .setDescription("Délai entre les combats (secondes)")
+            .setRequired(false)
+            .setMinValue(1)
+            .setMaxValue(30)
+        )
+        .addStringOption(o =>
+          o.setName("joueurs")
+            .setDescription("Joueurs à inclure (séparés par des virgules)")
+            .setRequired(false)
+        )
+        .addStringOption(o =>
+          o.setName("exclure")
+            .setDescription("Joueurs à exclure (séparés par des virgules)")
+            .setRequired(false)
+        ),
+
+
+      new SlashCommandBuilder()
+        .setName("concours-teub")
+        .setDescription("Comparer 2 joueurs")
+        .addStringOption(o =>
+          o.setName("joueur1")
+            .setDescription("Premier joueur")
+            .setRequired(true)
+        )
+        .addStringOption(o =>
+          o.setName("joueur2")
+            .setDescription("Deuxième joueur")
+            .setRequired(true)
+        )
   ].map(command => command.toJSON());
 }
 
