@@ -1,6 +1,5 @@
 const { getSession, updateSession } = require("../teubRoyale/session");
 const { playMatch } = require("../teubRoyale/events");
-const { createBracket } = require("../teubRoyale/bracket");
 
 
 module.exports = {
@@ -40,13 +39,37 @@ module.exports = {
         }
 
 
-        await interaction.reply(
-`
-🎙️ PROCHAIN COMBAT / NEXT FIGHT
+        if(!match.p2){
 
-⚔️ ${match.p1.name} VS ${match.p2.name}
-`
+        session.winners.push(match.p1);
+        session.currentMatch++;
+
+        updateSession({
+            winners: session.winners,
+            currentMatch: session.currentMatch
+        });
+
+
+        return interaction.reply(
+    `
+    🛡️ EXEMPT / BYE
+
+    🇫🇷 ${match.p1.name} passe automatiquement au prochain tour !
+    🇬🇧 ${match.p1.name} advances automatically!
+    `
         );
+
+    }
+
+
+
+    await interaction.reply(
+    `
+    🎙️ PROCHAIN COMBAT / NEXT FIGHT
+
+    ⚔️ ${match.p1.name} VS ${match.p2.name}
+    `
+    );
 
 
         const winner = await playMatch(
@@ -73,20 +96,62 @@ module.exports = {
 
 
 
+        // Dernier combat du round terminé
+
+        if(session.currentMatch >= session.round.length){
+
+
+            updateSession({
+
+                currentMatch:0
+
+            });
+
+
+          await interaction.channel.send(
+`
+        ⏸️ FIN DU ROUND ${session.roundNumber}
+
+        🇫🇷 Tous les combats sont terminés !
+        🇬🇧 All fights are finished!
+
+
+        🎙️ Présentateur :
+
+        Utilisez :
+
+        /teub-round
+
+        pour lancer le prochain tour.
+
+        ⏱️ Délai prévu :
+        ${session.delaiRound} secondes
+        `
+        );
+
+
+            return;
+
+        }
+
+
+
+        // Sinon prochain combat
+
         await interaction.channel.send(
-`
-🎙️ Présentateur :
+        `
+        🎙️ Présentateur :
 
-🇫🇷 Combat terminé !
-🇬🇧 Fight finished!
+        🇫🇷 Combat terminé !
+        🇬🇧 Fight finished!
 
 
-Utilisez :
+        Utilisez :
 
-/teub-next
+        /teub-next
 
-pour le prochain combat.
-`
+        pour le prochain combat.
+        `
         );
 
 

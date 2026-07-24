@@ -3,6 +3,8 @@ const config = require("../config");
 
 function buildCommands() {
   return [
+
+    // ---------------- SEARCHPALMON ----------------
     new SlashCommandBuilder()
       .setName("searchpalmon")
       .setDescription("Recherche un Palmon par ID")
@@ -12,6 +14,7 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- PALMONS ----------------
     new SlashCommandBuilder()
       .setName("palmons")
       .setDescription("Voir les Palmons d'un pseudo dans la pouponniere")
@@ -21,6 +24,7 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- ADDPLAYER ----------------
     new SlashCommandBuilder()
       .setName("addplayer")
       .setDescription("Ajouter un joueur")
@@ -50,6 +54,7 @@ function buildCommands() {
           .setRequired(false)
       ),
 
+      // ---------------- UPGRADE ----------------
     new SlashCommandBuilder()
       .setName("upgrade")
       .setDescription("Améliorer les stats d’un joueur")
@@ -63,10 +68,12 @@ function buildCommands() {
       .addNumberOption(o => o.setName("t3").setDescription("Bonus T3"))
       .addNumberOption(o => o.setName("t4").setDescription("Bonus T4")),
 
+    // ---------------- STATS ----------------
     new SlashCommandBuilder()
       .setName("stats")
       .setDescription("Voir stats"),
 
+      //  ---------------- HISTORY ----------------
     new SlashCommandBuilder()
       .setName("history")
       .setDescription("Voir historique")
@@ -76,18 +83,22 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- TOP ----------------
     new SlashCommandBuilder()
       .setName("top")
       .setDescription("Classement des joueurs (T1)"),
 
+      // ---------------- PLAYERS ----------------
     new SlashCommandBuilder()
       .setName("players")
       .setDescription("Liste des joueurs (sans stats)"),
 
+      // ---------------- PEREFLOFLO ----------------
     new SlashCommandBuilder()
       .setName("perefloflo")
       .setDescription("Introduction du Père Floflo"),
 
+      //  ---------------- PINGOUIN ----------------
     new SlashCommandBuilder()
       .setName("penguin")
       .setDescription("Alerter un membre pour un pingouin roi spectral")
@@ -97,6 +108,7 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- SPAM MEDIA ----------------
     new SlashCommandBuilder()
       .setName("spammedia")
       .setDescription("Envoie plusieurs fois une image/gif ou un media aléatoire local")
@@ -118,6 +130,7 @@ function buildCommands() {
           .setRequired(false)
       ),
 
+      // ---------------- PUB ----------------
     new SlashCommandBuilder()
       .setName("pub")
       .setDescription("Lance une pause pub avec des medias aleatoires du dossier pub")
@@ -129,10 +142,12 @@ function buildCommands() {
           .setRequired(true)
       ),
     
+      //  ---------------- ARCTIQUE ----------------
       new SlashCommandBuilder()
         .setName("arctique")
         .setDescription("Gestion des bases de arctique"),
-    
+
+    // ---------------- ARCHIVE ARCTIQUE ----------------
     new SlashCommandBuilder()
       .setName("archivearctique")
       .setDescription("Créer une archive des bases arctique")
@@ -142,6 +157,7 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- CONCOURS TEUB ----------------
       new SlashCommandBuilder()
       .setName("concours-teub")
       .setDescription("Comparer 2 joueurs")
@@ -156,6 +172,7 @@ function buildCommands() {
           .setRequired(true)
       ),
 
+      // ---------------- TEUB ROYALE ----------------
         new SlashCommandBuilder()
         .setName("teub-royale")
         .setDescription("Lancer une Teub Royale")
@@ -173,8 +190,8 @@ function buildCommands() {
             .setDescription("Mode de gestion du tournoi")
             .setRequired(true)
             .addChoices(
-              { name: "Automatique", value: "auto" },
-              { name: "Présentateur", value: "presentateur" }
+              { name: "🤖 Automatique", value: "auto" },
+              { name: "🎙️ Présentateur", value: "manual" }
             )
         )
         .addIntegerOption(o =>
@@ -205,6 +222,10 @@ function buildCommands() {
         new SlashCommandBuilder()
         .setName("teub-next")
         .setDescription("Lancer le prochain combat de la Teub Royale"),
+        new SlashCommandBuilder()
+        .setName("teub-round")
+        .setDescription("Lancer le prochain round de la Teub Royale"),
+
 
   ].map(command => command.toJSON());
 }

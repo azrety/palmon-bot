@@ -88,7 +88,7 @@ module.exports = {
 
         // MODE PRESENTATEUR 🎙️
 
-        if(controle === "presentateur"){
+        if(controle === "manual"){
 
 
             createSession({
@@ -122,7 +122,19 @@ module.exports = {
         🇬🇧 The tournament is ready!
 
 
-        🔥 ROUND 1
+        🔥 ROUND 1 READY
+
+        🇫🇷 Le premier combat est prêt !
+        🇬🇧 The first fight is ready!
+
+
+        🎙️ Présentateur :
+
+        Utilisez :
+
+        /teub-next
+
+        pour lancer le combat.
 
 
         Utilisez :
@@ -184,10 +196,13 @@ module.exports = {
 
 
            await endRound(
-            roundNumber,
-            delai,
-            interaction
-        );
+                roundNumber,
+                delaiRound,
+                interaction
+            );
+
+
+            await wait(delaiRound);
 
 
         await wait(delai);

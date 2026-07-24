@@ -30,6 +30,7 @@ const commands = [
   require("./arctique"),
   require("./teub-royale"),
   require("./teub-next"),
+  require("./teub-round"),
 ];
 
 const commandMap = new Map(commands.map(c => [c.name, c]));
