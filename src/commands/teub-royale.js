@@ -1,6 +1,7 @@
 const { postSheetApi } = require("../services/sheets");
 const { createBracket, getWinners } = require("../teubRoyale/bracket");
 const { fight } = require("../teubRoyale/engine");
+const { playMatch } = require("../teubRoyale/events");
 
 
 module.exports = {
@@ -84,45 +85,72 @@ module.exports = {
 
        // Déroulement des rounds
 
-let champion = null;
+        let champion = null;
+
+        while (!champion) {
 
 
-while (!champion) {
+            const winners = [];
 
 
-    const winners = getWinners(
-        round,
-        fight
-    );
+            for (const match of round) {
 
 
-    // Un seul gagnant restant
+                if (!match.p2) {
 
-    if (winners.length === 1) {
+                    winners.push(match.p1);
+                    continue;
 
-        champion = winners[0];
-        break;
-
-    }
+                }
 
 
-    // Nouveau round
+                const winner = await playMatch(
+                    match,
+                    interaction,
+                    delai
+                );
 
-    round = createBracket(winners);
 
-}
+                winners.push(winner);
 
+            }
+
+
+
+            if (winners.length === 1) {
+
+                champion = winners[0];
+                break;
+
+            }
+
+
+
+            round = createBracket(winners);
+
+
+            await interaction.channel.send(
+        `
+        ⏸️ Fin du round
+
+        🔥 Nouveau tour dans ${delai} secondes...
+        `
+            );
+
+
+            await new Promise(resolve =>
+                setTimeout(resolve, delai * 1000)
+            );
+
+        }
+
+
+
+    const { champion: championMessage } = require("../teubRoyale/messages");
 
 
         await interaction.editReply(
-`
-# 🍆 TEUB ROYALE
-
-🏆 Champion :
-
-${champion.name}
-
-`
+            championMessage(champion)
         );
 
     }
