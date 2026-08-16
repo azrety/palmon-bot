@@ -2,7 +2,7 @@ const { postSheetApi } = require("../services/sheets");
 const { createBracket } = require("../teubRoyale/bracket");
 const { playMatch, startRound, endRound, wait } = require("../teubRoyale/events");
 const { createSession } = require("../teubRoyale/session");
-
+const { renderBracket } = require("../teubRoyale/renderer");
 
 module.exports = {
     name: "teub-royale",
@@ -85,6 +85,9 @@ module.exports = {
         // Création du premier tour
 
         let round = createBracket(players);
+        await interaction.channel.send(
+          renderBracket(round)
+        );
 
         // MODE PRESENTATEUR 🎙️
 
@@ -201,17 +204,17 @@ module.exports = {
                 interaction
             );
 
+           await wait(delaiRound);
 
-            await wait(delaiRound);
+           await wait(delai);
 
+           round = createBracket(winners);
 
-        await wait(delai);
+          await interaction.channel.send(
+                renderBracket(round)
+            );
 
-
-        round = createBracket(winners);
-        roundNumber++;
-
-        }
+            roundNumber++;
 
 
 
