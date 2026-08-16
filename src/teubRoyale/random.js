@@ -1,108 +1,76 @@
-function shuffle(array){
-
-    return [...array]
-        .sort(() => Math.random() - 0.5);
-
-}
-
-
-function randomFrom(array){
-
+function randomFrom(array) {
     return array[
         Math.floor(Math.random() * array.length)
     ];
-
 }
 
+function bilingual(array) {
+    const message = randomFrom(array);
 
-function randomComment(){
+    return `
+🇫🇷 ${message.fr}
 
-    return randomFrom(battleComments);
-
+🇬🇧 ${message.en}
+`;
 }
 
 const fightStartComments = [
-
-"🔥 Les combattants entrent dans l'arène !",
-"🔥 The fighters enter the arena!",
-
-"🏟️ Le public retient son souffle !",
-"🏟️ The crowd holds its breath!",
-
-"⚔️ Le duel légendaire commence !",
-"⚔️ The legendary battle begins!",
-
-"😈 Deux monstres, une seule victoire !",
-"😈 Two monsters, only one victory!",
-
-"🍆 L'arène est prête pour ce combat !",
-"🍆 The arena is ready for this fight!"
-
+    {
+        fr: "Les combattants entrent dans l'arène !",
+        en: "The fighters enter the arena!"
+    },
+    {
+        fr: "Le public retient son souffle !",
+        en: "The crowd holds its breath!"
+    },
+    {
+        fr: "Le duel légendaire commence !",
+        en: "The legendary battle begins!"
+    },
+    {
+        fr: "Deux monstres vont s'affronter !",
+        en: "Two monsters are about to clash!"
+    }
 ];
 
 const battleComments = [
-
-"💥 Une attaque dévastatrice vient de partir !",
-
-"🔥 La puissance monte encore !",
-
-"⚡ Le public devient complètement fou !",
-
-"😱 Personne ne s'attendait à ça !",
-
-"🏟️ Les supporters hurlent dans l'arène !",
-
-"💀 Quel échange brutal !",
-
-"🍆 Une technique secrète vient d'être utilisée !",
-
-"🚨 Les arbitres commencent à paniquer !",
-
-"🤯 Même les anciens champions regardent le combat !",
-
-"🗿 Un moment historique est en train de se produire !"
-
+    {
+        fr: "La puissance augmente !",
+        en: "The power keeps rising!"
+    },
+    {
+        fr: "L'arène devient complètement folle !",
+        en: "The arena goes completely wild!"
+    },
+    {
+        fr: "Un moment historique est en train de se produire !",
+        en: "History is being written!"
+    },
+    {
+        fr: "Les supporters scandent leur nom !",
+        en: "The crowd is chanting their names!"
+    }
 ];
 
 const victoryComments = [
-
-"👑 Une victoire écrasante !",
-
-"🔥 Quelle démonstration de puissance !",
-
-"⚔️ Le champion du combat est désigné !",
-
-"🏆 Une performance incroyable !",
-
-"😎 Il repart de l'arène en héros !",
-
-"📢 Le public scande son nom !",
-
-"💪 Une victoire sans discussion !"
-
+    {
+        fr: "Une victoire écrasante !",
+        en: "A crushing victory!"
+    },
+    {
+        fr: "Le champion du combat est désigné !",
+        en: "The champion of the battle has been crowned!"
+    },
+    {
+        fr: "Quel combat incroyable !",
+        en: "What an incredible fight!"
+    }
 ];
-
-const defeatComments = [
-
-"💀 Le rêve s'arrête ici...",
-
-"😭 L'aventure touche à sa fin...",
-
-"🏳️ Il quitte l'arène avec honneur.",
-
-"🥲 Une belle bataille malgré tout.",
-
-"⚰️ La Teub Royale ne pardonne personne."
-
-];
-
 
 module.exports = {
-    shuffle,
     randomFrom,
-    randomComment,
+    bilingual,
     fightStartComments,
     battleComments,
-    victoryComments,
-    defeatComments
+    victoryComments
 };

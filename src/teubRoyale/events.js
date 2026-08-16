@@ -6,6 +6,8 @@ const {
     battleComments,
     victoryComments
 } = require("./random");
+const { bilingual } = require("./random");
+const { randomArena } = require("./arenas");
 
 function wait(seconds){
 
@@ -26,15 +28,26 @@ async function playMatch(match, interaction, delai){
         fightStart(match.p1, match.p2)
     );
 
+        const arena = randomArena();
 
-    await wait(delai);
+        await interaction.channel.send(
+        `
+        🏟️ ARÈNE / ARENA
+
+        🇫🇷 ${arena.fr}
+
+        🇬🇧 ${arena.en}
+        `
+        );
+
+        await wait(delai);
 
 
 
     // Message entrée combattants
 
     await interaction.channel.send(
-        randomFrom(fightStartComments)
+        bilingual(fightStartComments)
     );
 
 
@@ -45,7 +58,7 @@ async function playMatch(match, interaction, delai){
     // Action pendant le combat
 
     await interaction.channel.send(
-        randomFrom(battleComments)
+      bilingual(battleComments)
     );
 
 
@@ -63,7 +76,7 @@ async function playMatch(match, interaction, delai){
     // Victoire
 
     await interaction.channel.send(
-        randomFrom(victoryComments)
+        bilingual(victoryComments)
     );
 
 

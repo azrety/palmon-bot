@@ -1,53 +1,53 @@
-function fightStart(player1, player2){
+const { getEmoji } = require("./profiles");
 
-return `
+function fightStart(player1, player2) {
+    const p1 = getEmoji(player1.name);
+    const p2 = getEmoji(player2.name);
+
+    return `
 ⚔️ COMBAT / FIGHT
 
-🇫🇷 ${player1.name} VS ${player2.name}
-🇬🇧 ${player1.name} VS ${player2.name}
-
-
-🔥 Le duel commence...
-🔥 The duel begins...
+${p1} ${player1.name} VS ${p2} ${player2.name}
 `;
-
 }
 
 
 
-function fightResult(result){
+function fightResult(result) {
+    const winnerEmoji = getEmoji(result.winner.name);
+    const loserEmoji = getEmoji(result.loser.name);
 
-return `
+    return `
 🏆 RESULTAT / RESULT
 
-🇫🇷 ✅ ${result.winner.name} gagne !
-🇬🇧 ✅ ${result.winner.name} wins!
+🇫🇷 ✅ ${winnerEmoji} ${result.winner.name} gagne !
+🇬🇧 ✅ ${winnerEmoji} ${result.winner.name} wins!
 
+📊 SCORE
 
-📊 Score / Score:
+${winnerEmoji} ${result.winner.name} : ${result.winnerScore}
 
-${result.winner.name} : ${result.winnerScore}
-${result.loser.name} : ${result.loserScore}
+${loserEmoji} ${result.loser.name} : ${result.loserScore}
 `;
-
 }
 
 
 
-function champion(player){
+function champion(player) {
+    const emoji = getEmoji(player.name);
 
-return `
+    return `
 🍆 TEUB ROYALE
 
-🏆 CHAMPION / CHAMPION
+🏆 CHAMPION
 
+${emoji} ${player.name}
 
-🇫🇷 ${player.name} remporte le tournoi !
-🇬🇧 ${player.name} wins the tournament!
+🇫🇷 remporte le tournoi !
+
+🇬🇧 wins the tournament!
 `;
-
 }
-
 
 
 function roundStart(number){
