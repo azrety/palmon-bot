@@ -7,7 +7,7 @@ const {
     victoryComments
 } = require("./random");
 const { bilingual } = require("./random");
-const { randomArena } = require("./arenas");
+const { randomArena } = require("./arena");
 
 function wait(seconds){
 
