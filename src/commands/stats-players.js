@@ -2,177 +2,116 @@ const { EmbedBuilder } = require("discord.js");
 const { postSheetApi } = require("../services/sheets");
 
 module.exports = {
-name: "stats-players",
+    name: "stats-players",
 
-```
-async execute(interaction) {
+    async execute(interaction) {
 
-    await interaction.deferReply();
+        await interaction.deferReply();
 
-    // Récupération des joueurs depuis l'API
-    const data = await postSheetApi({
-        action: "getplayers"
-    });
+        const data = await postSheetApi({
+            action: "getplayers"
+        });
 
-    if (!data?.success) {
-        return interaction.editReply("❌ API error");
-    }
+        if (!data?.success) {
+            return interaction.editReply("❌ API error");
+        }
 
-    const players = data.players;
+        const players = data.players || [];
 
-    // Fonction pour convertir les valeurs en nombres
-    const getScore = (player, stat) =>
-        Number(player[stat]) || 0;
+        const getScore = (player, stat) => {
+            return Number(player[stat]) || 0;
+        };
 
+        const statsPlayers = players
+            .map(player => {
 
-    // =========================
-    // CALCUL DES JOUEURS
-    // =========================
+                const t1 = getScore(player, "t1");
+                const t2 = getScore(player, "t2");
+                const t3 = getScore(player, "t3");
+                const t4 = getScore(player, "t4");
 
-    const statsPlayers = players
-        .map(player => {
+                const totalSansT4 = t1 + t2 + t3;
+                const totalAvecT4 = totalSansT4 + t4;
 
-            const t1 = getScore(player, "t1");
-            const t2 = getScore(player, "t2");
-            const t3 = getScore(player, "t3");
-            const t4 = getScore(player, "t4");
+                return {
+                    name: player.name || "Joueur inconnu",
+                    t1,
+                    t2,
+                    t3,
+                    t4,
+                    totalSansT4,
+                    totalAvecT4
+                };
+            })
+            .sort((a, b) => b.totalAvecT4 - a.totalAvecT4);
 
-            // Total des équipes 1, 2 et 3
-            const totalSansT4 =
-                t1 +
-                t2 +
-                t3;
-
-            // Si le joueur a une Team 4,
-            // elle est ajoutée au total
-            const totalAvecT4 =
-                totalSansT4 +
-                t4;
-
-            return {
-                name: player.name,
-                t1,
-                t2,
-                t3,
-                t4,
-                totalSansT4,
-                totalAvecT4
-            };
-
-        })
-        .sort(
-            (a, b) =>
-                b.totalAvecT4 - a.totalAvecT4
-        );
-
-
-    // =========================
-    // TOTAUX GLOBAUX
-    // =========================
-
-    const totalGlobalAvecT4 =
-        statsPlayers.reduce(
-            (total, player) =>
-                total + player.totalAvecT4,
+        const totalGlobalAvecT4 = statsPlayers.reduce(
+            (total, player) => total + player.totalAvecT4,
             0
         );
 
-    const totalGlobalSansT4 =
-        statsPlayers.reduce(
-            (total, player) =>
-                total + player.totalSansT4,
+        const totalGlobalSansT4 = statsPlayers.reduce(
+            (total, player) => total + player.totalSansT4,
             0
         );
 
-    const totalGlobalT4 =
-        statsPlayers.reduce(
-            (total, player) =>
-                total + player.t4,
+        const totalGlobalT4 = statsPlayers.reduce(
+            (total, player) => total + player.t4,
             0
         );
 
-
-    // =========================
-    // JOUEURS AVEC TEAM 4
-    // =========================
-
-    const joueursAvecT4 =
-        statsPlayers.filter(
+        const joueursAvecT4 = statsPlayers.filter(
             player => player.t4 > 0
         );
 
+        let classement = "";
 
-    // =========================
-    // LISTE DES JOUEURS
-    // =========================
+        statsPlayers.forEach((player, index) => {
 
-    const classement =
-        statsPlayers
-            .map((player, index) => {
+            classement +=
+                `${index + 1}. **${player.name}** — ` +
+                `**${player.totalAvecT4.toFixed(2)} pts**`;
 
-                let ligne =
-                    `**${index + 1}. ${player.name}** — ` +
-                    `**${player.totalAvecT4.toFixed(2)}** pts`;
+            if (player.t4 > 0) {
+                classement +=
+                    `\n   ↳ 🚫 Sans Team 4 : **${player.totalSansT4.toFixed(2)}**` +
+                    ` | 🔥 Team 4 : **+${player.t4.toFixed(2)}**`;
+            }
 
-                if (player.t4 > 0) {
+            classement += "\n\n";
+        });
 
-                    ligne +=
-                        `\n↳ 🚫 Sans T4 : **${player.totalSansT4.toFixed(2)}**` +
-                        ` | 🔥 T4 : **+${player.t4.toFixed(2)}**`;
-
-                }
-
-                return ligne;
-
-            })
-            .join("\n\n");
-
-
-    // =========================
-    // EMBED
-    // =========================
-
-    const embed = new EmbedBuilder()
-        .setTitle("📊 STATS PLAYERS")
-        .setColor(0xFF00FF)
-        .setDescription(
-            `
-```
-
-## 👥 ${players.length} JOUEURS ANALYSÉS
+        const embed = new EmbedBuilder()
+            .setTitle("📊 STATS PLAYERS")
+            .setColor(0xFF00FF)
+            .setDescription(
+                `👥 **${players.length} joueurs analysés**
 
 ━━━━━━━━━━━━━━━━━━
 
-## 📈 TOTAL GÉNÉRAL
+📈 **TOTAL GÉNÉRAL**
 
-🔥 **Avec Team 4**
-
+🔥 Avec Team 4 :
 **${totalGlobalAvecT4.toFixed(2)} pts**
 
-🚫 **Sans Team 4**
-
+🚫 Sans Team 4 :
 **${totalGlobalSansT4.toFixed(2)} pts**
 
-🔥 **Total Team 4**
-
+🔥 Total Team 4 :
 **+${totalGlobalT4.toFixed(2)} pts**
 
 ━━━━━━━━━━━━━━━━━━
 
-## 🏆 CLASSEMENT DES JOUEURS
+🏆 **CLASSEMENT DES JOUEURS**
 
-${classement}
-`            )
+${classement}`
+            )
             .setFooter({
-                text:`${joueursAvecT4.length} joueur(s) avec une Team 4`
-});
+                text: `${joueursAvecT4.length} joueur(s) avec une Team 4`
+            });
 
-```
-    return interaction.editReply({
-        embeds: [embed]
-    });
-
-}
-```
-
+        return interaction.editReply({
+            embeds: [embed]
+        });
+    }
 };
