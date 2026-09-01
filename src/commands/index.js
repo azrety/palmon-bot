@@ -31,6 +31,7 @@ const commands = [
   require("./teub-royale"),
   require("./teub-next"),
   require("./teub-round"),
+  require("./stats-players")
 ];
 
 const commandMap = new Map(commands.map(c => [c.name, c]));
