@@ -35,34 +35,13 @@ module.exports = {
 
                 return {
                     name: player.name || "Joueur inconnu",
-                    t1,
-                    t2,
-                    t3,
                     t4,
                     totalSansT4,
                     totalAvecT4
                 };
             })
-            .sort((a, b) => b.totalAvecT4 - a.totalAvecT4);
-
-        const totalGlobalAvecT4 = statsPlayers.reduce(
-            (total, player) => total + player.totalAvecT4,
-            0
-        );
-
-        const totalGlobalSansT4 = statsPlayers.reduce(
-            (total, player) => total + player.totalSansT4,
-            0
-        );
-
-        const totalGlobalT4 = statsPlayers.reduce(
-            (total, player) => total + player.t4,
-            0
-        );
-
-        const joueursAvecT4 = statsPlayers.filter(
-            player => player.t4 > 0
-        );
+            // Classement basé UNIQUEMENT sur la puissance sans Team 4
+            .sort((a, b) => b.totalSansT4 - a.totalSansT4);
 
         let classement = "";
 
@@ -70,12 +49,11 @@ module.exports = {
 
             classement +=
                 `${index + 1}. **${player.name}** — ` +
-                `**${player.totalAvecT4.toFixed(2)} pts**`;
+                `**${player.totalSansT4.toFixed(2)} pts**`;
 
             if (player.t4 > 0) {
                 classement +=
-                    `\n   ↳ 🚫 Sans Team 4 : **${player.totalSansT4.toFixed(2)}**` +
-                    ` | 🔥 Team 4 : **+${player.t4.toFixed(2)}**`;
+                    `\n   ↳ 🔥 Avec Team 4 : **${player.totalAvecT4.toFixed(2)} pts**`;
             }
 
             classement += "\n\n";
@@ -89,25 +67,14 @@ module.exports = {
 
 ━━━━━━━━━━━━━━━━━━
 
-📈 **TOTAL GÉNÉRAL**
+🏆 **CLASSEMENT**
 
-🔥 Avec Team 4 :
-**${totalGlobalAvecT4.toFixed(2)} pts**
-
-🚫 Sans Team 4 :
-**${totalGlobalSansT4.toFixed(2)} pts**
-
-🔥 Total Team 4 :
-**+${totalGlobalT4.toFixed(2)} pts**
-
-━━━━━━━━━━━━━━━━━━
-
-🏆 **CLASSEMENT DES JOUEURS**
+*Classement basé sur la puissance sans Team 4.*
 
 ${classement}`
             )
             .setFooter({
-                text: `${joueursAvecT4.length} joueur(s) avec une Team 4`
+                text: "Le classement ne prend pas en compte la Team 4"
             });
 
         return interaction.editReply({
