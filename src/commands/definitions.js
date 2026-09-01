@@ -225,7 +225,11 @@ function buildCommands() {
         new SlashCommandBuilder()
         .setName("teub-round")
         .setDescription("Lancer le prochain round de la Teub Royale"),
+// ------------ STATS PLAYERS ---------------
 
+          new SlashCommandBuilder()
+          .setName("stats-players")
+          .setDescription("Voir les puissances totales de tout les joueurs dans l'ordre")
 
   ].map(command => command.toJSON());
 }
