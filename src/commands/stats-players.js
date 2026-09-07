@@ -70,17 +70,16 @@ module.exports = {
 
             classement +=
                 `${index + 1}. **${player.name}** — ` +
-                `**${player.totalSansT4.toFixed(2)} pts**`;
+                `**${player.totalSansT4.toFixed(2)} pts**\n`;
 
             if (player.t4 > 0) {
                 classement +=
-                    `\n   ↳ 🔥 Avec Team 4 : **${player.totalAvecT4.toFixed(2)} pts**`;
+                    `   ↳ 🔥 Avec Team 4 : **${player.totalAvecT4.toFixed(2)} pts**\n`;
             }
 
             classement +=
-                `\n   🕒 Dernière MAJ : **${formatDate(player.lastUpdate)}**`;
+                `   🕒 Last UP : **${formatDate(player.lastUpdate)}**\n\n`;
 
-            classement += "\n\n";
         });
 
         const embed = new EmbedBuilder()
