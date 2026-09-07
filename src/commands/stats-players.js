@@ -22,6 +22,26 @@ module.exports = {
             return Number(player[stat]) || 0;
         };
 
+        // Formatage de la date
+        const formatDate = (date) => {
+            if (!date) return "Inconnue";
+
+            const parsedDate = new Date(date);
+
+            if (isNaN(parsedDate.getTime())) {
+                return String(date);
+            }
+
+            return parsedDate.toLocaleString("fr-FR", {
+                timeZone: "Europe/Paris",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        };
+
         const statsPlayers = players
             .map(player => {
 
@@ -37,7 +57,8 @@ module.exports = {
                     name: player.name || "Joueur inconnu",
                     t4,
                     totalSansT4,
-                    totalAvecT4
+                    totalAvecT4,
+                    lastUpdate: player.lastUpdate
                 };
             })
             // Classement basé UNIQUEMENT sur la puissance sans Team 4
@@ -55,6 +76,9 @@ module.exports = {
                 classement +=
                     `\n   ↳ 🔥 Avec Team 4 : **${player.totalAvecT4.toFixed(2)} pts**`;
             }
+
+            classement +=
+                `\n   🕒 Dernière MAJ : **${formatDate(player.lastUpdate)}**`;
 
             classement += "\n\n";
         });
