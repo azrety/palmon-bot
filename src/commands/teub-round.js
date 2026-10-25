@@ -1,6 +1,6 @@
 const { getSession, updateSession, clearSession } = require("../teubRoyale/session");
 const { createBracket } = require("../teubRoyale/bracket");
-const { renderBracket } = require("../teubRoyale/renderer");
+const { roundStart } = require("../teubRoyale/messages");
 const { champion } = require("../teubRoyale/messages");
 
 module.exports = {
@@ -41,11 +41,6 @@ module.exports = {
       roundComplete: false
     });
 
-    await interaction.reply(`🔥 ROUND ${nextNumber} prêt. Utilisez /teub-next pour lancer le prochain combat.`);
-    await interaction.channel.send(renderBracket(nextRound));
+    await interaction.reply(roundStart(nextNumber));
   }
 };
-
-
-
-

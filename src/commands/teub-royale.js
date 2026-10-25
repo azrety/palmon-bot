@@ -2,7 +2,7 @@ const { postSheetApi } = require("../services/sheets");
 const { createBracket } = require("../teubRoyale/bracket");
 const { playMatch, startRound, endRound, wait } = require("../teubRoyale/events");
 const { createSession, getSession, clearSession } = require("../teubRoyale/session");
-const { renderBracket, renderFullBracket } = require("../teubRoyale/renderer");
+const { renderUpcomingRounds } = require("../teubRoyale/renderer");
 const { champion: championMessage } = require("../teubRoyale/messages");
 
 module.exports = {
@@ -60,11 +60,9 @@ module.exports = {
 
     if (control === "manual") {
       try {
-        await interaction.channel.send(mode === "bracket" ? renderFullBracket(round) : renderBracket(round));
+        await startRound(1, interaction);
         await interaction.editReply(
-          "🍆 TEUB ROYALE — mode présentateur activé.\n\n" +
-          "Le tableau est prêt. Utilisez /teub-next pour lancer chaque combat, " +
-          "puis /teub-round pour passer au tour suivant ou annoncer le champion."
+          "🍆 TEUB ROYALE — mode présentateur activé. Utilisez /teub-next pour lancer les combats."
         );
       } catch (error) {
         clearSession(key);
@@ -74,8 +72,7 @@ module.exports = {
     }
 
     try {
-      await interaction.channel.send(mode === "bracket" ? renderFullBracket(round) : renderBracket(round));
-      await interaction.editReply("🔥 Tournoi lancé en mode automatique. Les résultats seront annoncés dans ce salon.");
+      await interaction.editReply("🔥 Tournoi lancé en mode automatique.");
 
       let currentRound = round;
       let roundNumber = 1;
@@ -99,9 +96,12 @@ module.exports = {
         }
 
         await endRound(roundNumber, delaiRound, interaction);
+        if (roundNumber === 1 && mode === "bracket") {
+          const upcomingRounds = renderUpcomingRounds(round);
+          if (upcomingRounds) await interaction.channel.send(upcomingRounds);
+        }
         await wait(delaiRound);
         currentRound = createBracket(winners, randomize);
-        await interaction.channel.send(renderBracket(currentRound));
         roundNumber += 1;
       }
 
@@ -111,5 +111,3 @@ module.exports = {
     }
   }
 };
-
-
