@@ -1,160 +1,63 @@
 const { getSession, updateSession } = require("../teubRoyale/session");
 const { playMatch } = require("../teubRoyale/events");
+const { champion } = require("../teubRoyale/messages");
 
+function channelKey(interaction) {
+  return interaction.channelId;
+}
+
+async function finishMatch(interaction, session) {
+  session.currentMatch += 1;
+
+  if (session.currentMatch < session.round.length) {
+    await interaction.channel.send(
+      "🎙️ Combat terminé ! Utilisez `/teub-next` pour lancer le prochain combat."
+    );
+    return;
+  }
+
+  updateSession(channelKey(interaction), { roundComplete: true });
+  await interaction.channel.send(
+    `⏸️ FIN DU ROUND ${session.roundNumber}\n\nTous les combats sont terminés. Utilisez /teub-round pour continuer.`
+  );
+}
 
 module.exports = {
+  name: "teub-next",
+  async execute(interaction) {
+    const key = channelKey(interaction);
+    const session = getSession(key);
 
-    name: "teub-next",
+    if (!session || session.finished || session.control !== "manual") {
+      return interaction.reply({ content: "❌ Aucun tournoi en cours dans ce salon.", ephemeral: true });
+    }
+    if (session.processing) {
+      return interaction.reply({ content: "⏳ Un combat est déjà en cours dans ce salon.", ephemeral: true });
+    }
+    if (session.roundComplete || session.currentMatch >= session.round.length) {
+      return interaction.reply({ content: "⚠️ Le round est terminé. Utilisez `/teub-round`.", ephemeral: true });
+    }
 
-
-    async execute(interaction){
-
-
-        const session = getSession();
-
-
-        if(!session){
-
-            return interaction.reply({
-                content:"❌ Aucun tournoi en cours.",
-                ephemeral:true
-            });
-
-        }
-
-
-        const round = session.round;
-
-
-        const match = round[session.currentMatch];
-
-
-        if(!match){
-
-            return interaction.reply({
-                content:"⚠️ Tous les combats du round sont terminés.",
-                ephemeral:true
-            });
-
-        }
-
-
-        if(!match.p2){
-
+    const match = session.round[session.currentMatch];
+    session.processing = true;
+    try {
+      if (!match.p2) {
         session.winners.push(match.p1);
-        session.currentMatch++;
+        await interaction.reply(`🛡️ ${match.p1.name} est exempté et passe au prochain round.`);
+        await finishMatch(interaction, session);
+        return;
+      }
 
-        updateSession({
-            winners: session.winners,
-            currentMatch: session.currentMatch
-        });
-
-
-        return interaction.reply(
-    `
-    🛡️ EXEMPT / BYE
-
-    🇫🇷 ${match.p1.name} passe automatiquement au prochain tour !
-    🇬🇧 ${match.p1.name} advances automatically!
-    `
-        );
-
+      await interaction.reply(`🎙️ PROCHAIN COMBAT\n\n⚔️ ${match.p1.name} VS ${match.p2.name}`);
+      const winner = await playMatch(match, interaction, session.delai);
+      session.winners.push(winner);
+      await finishMatch(interaction, session);
+    } finally {
+      session.processing = false;
     }
-
-
-
-    await interaction.reply(
-    `
-    🎙️ PROCHAIN COMBAT / NEXT FIGHT
-
-    ⚔️ ${match.p1.name} VS ${match.p2.name}
-    `
-    );
-
-
-        const winner = await playMatch(
-            match,
-            interaction,
-            session.delai
-        );
-
-
-        session.winners.push(winner);
-
-
-        session.currentMatch++;
-
-
-
-        updateSession({
-
-            winners: session.winners,
-
-            currentMatch: session.currentMatch
-
-        });
-
-
-
-        // Dernier combat du round terminé
-
-        if(session.currentMatch >= session.round.length){
-
-
-            updateSession({
-
-                currentMatch:0
-
-            });
-
-
-          await interaction.channel.send(
-`
-        ⏸️ FIN DU ROUND ${session.roundNumber}
-
-        🇫🇷 Tous les combats sont terminés !
-        🇬🇧 All fights are finished!
-
-
-        🎙️ Présentateur :
-
-        Utilisez :
-
-        /teub-round
-
-        pour lancer le prochain tour.
-
-        ⏱️ Délai prévu :
-        ${session.delaiRound} secondes
-        `
-        );
-
-
-            return;
-
-        }
-
-
-
-        // Sinon prochain combat
-
-        await interaction.channel.send(
-        `
-        🎙️ Présentateur :
-
-        🇫🇷 Combat terminé !
-        🇬🇧 Fight finished!
-
-
-        Utilisez :
-
-        /teub-next
-
-        pour le prochain combat.
-        `
-        );
-
-
-    }
-
+  }
 };
+
+
+
+

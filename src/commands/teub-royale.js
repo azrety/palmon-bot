@@ -1,240 +1,115 @@
 const { postSheetApi } = require("../services/sheets");
 const { createBracket } = require("../teubRoyale/bracket");
 const { playMatch, startRound, endRound, wait } = require("../teubRoyale/events");
-const { createSession } = require("../teubRoyale/session");
-const { renderBracket } = require("../teubRoyale/renderer");
+const { createSession, getSession, clearSession } = require("../teubRoyale/session");
+const { renderBracket, renderFullBracket } = require("../teubRoyale/renderer");
+const { champion: championMessage } = require("../teubRoyale/messages");
 
 module.exports = {
-    name: "teub-royale",
-
-    async execute(interaction) {
-
-        await interaction.deferReply();
-
-
-        const mode = interaction.options.getString("mode");
-
-        const controle = interaction.options.getString("controle");
-
-        const delai = interaction.options.getInteger("delai") ?? 5;
-
-        const delaiRound = interaction.options.getInteger("delai_round") ?? 10;
-
-        const joueursOption = interaction.options.getString("joueurs");
-        const exclureOption = interaction.options.getString("exclure");
-
-
-        const data = await postSheetApi({
-            action: "getplayers"
-        });
-
-
-        if (!data?.success) {
-            return interaction.editReply("❌ API error");
-        }
-
-
-        let players = data.players;
-
-
-
-        // Filtre joueurs inclus
-
-        if (joueursOption) {
-
-            const liste = joueursOption
-                .split(",")
-                .map(p => p.trim().toLowerCase());
-
-
-            players = players.filter(p =>
-                liste.includes(p.name.toLowerCase())
-            );
-
-        }
-
-
-
-        // Filtre joueurs exclus
-
-        if (exclureOption) {
-
-            const liste = exclureOption
-                .split(",")
-                .map(p => p.trim().toLowerCase());
-
-
-            players = players.filter(p =>
-                !liste.includes(p.name.toLowerCase())
-            );
-
-        }
-
-
-
-        if (players.length < 2) {
-
-            return interaction.editReply(
-                "❌ Il faut au moins 2 joueurs."
-            );
-
-        }
-
-
-
-        // Création du premier tour
-
-        let round = createBracket(players);
-        await interaction.channel.send(
-          renderBracket(round)
-        );
-
-        // MODE PRESENTATEUR 🎙️
-
-        if(controle === "manual"){
-
-
-            createSession({
-
-                mode,
-
-                delai,
-
-                delaiRound,
-
-                roundNumber:1,
-
-                round,
-
-                winners:[],
-
-                currentMatch:0,
-
-                interactionChannel: interaction.channel.id
-
-            });
-
-
-            return interaction.editReply(
-        `
-        🍆 TEUB ROYALE
-
-        🎙️ MODE PRÉSENTATEUR ACTIVÉ
-
-        🇫🇷 Le tournoi est prêt !
-        🇬🇧 The tournament is ready!
-
-
-        🔥 ROUND 1 READY
-
-        🇫🇷 Le premier combat est prêt !
-        🇬🇧 The first fight is ready!
-
-
-        🎙️ Présentateur :
-
-        Utilisez :
-
-        /teub-next
-
-        pour lancer le combat.
-
-
-        Utilisez :
-
-        /teub-next
-
-        pour lancer le prochain combat.
-        `
-            );
-
-        }
-
-       // Déroulement des rounds
-
-        let champion = null;
-        let roundNumber = 1;
-
-        while (!champion) {
-
-            await startRound(
-                roundNumber,
-                interaction
-            );
-
-            const winners = [];
-
-
-            for (const match of round) {
-
-
-                if (!match.p2) {
-
-                    winners.push(match.p1);
-                    continue;
-
-                }
-
-
-                const winner = await playMatch(
-                    match,
-                    interaction,
-                    delai
-                );
-
-
-                winners.push(winner);
-
-            }
-
-
-
-            if (winners.length === 1) {
-
-                champion = winners[0];
-                break;
-
-            }
-
-
-
-           await endRound(
-                roundNumber,
-                delaiRound,
-                interaction
-            );
-
-           await wait(delaiRound);
-
-           await wait(delai);
-
-           round = createBracket(winners);
-
-          await interaction.channel.send(
-                renderBracket(round)
-            );
-
-            roundNumber++;
-        }
-
-
-
-        const { champion: championMessage } = require("../teubRoyale/messages");
-
-
-        await interaction.editReply(
-        `
-        🍆 TEUB ROYALE
-
-        🔥 Le tournoi est terminé !
-        🔥 The tournament is over!
-        `
-        );
-
-
-        await interaction.channel.send(
-            championMessage(champion)
-        );
-
+  name: "teub-royale",
+  async execute(interaction) {
+    await interaction.deferReply();
+    const key = interaction.channelId;
+
+    if (getSession(key)) {
+      return interaction.editReply("❌ Un tournoi est déjà en cours dans ce salon.");
     }
+
+    const mode = interaction.options.getString("mode");
+    const control = interaction.options.getString("controle");
+    const delai = interaction.options.getInteger("delai") ?? 5;
+    const delaiRound = interaction.options.getInteger("delai_round") ?? 10;
+    const joueursOption = interaction.options.getString("joueurs");
+    const exclureOption = interaction.options.getString("exclure");
+
+    const data = await postSheetApi({ action: "getplayers" });
+    if (!data?.success || !Array.isArray(data.players)) {
+      return interaction.editReply("❌ Impossible de récupérer la liste des joueurs.");
+    }
+
+    let players = data.players.filter(player => player?.name);
+    if (joueursOption) {
+      const included = joueursOption.split(",").map(name => name.trim().toLowerCase()).filter(Boolean);
+      players = players.filter(player => included.includes(player.name.toLowerCase()));
+    }
+    if (exclureOption) {
+      const excluded = exclureOption.split(",").map(name => name.trim().toLowerCase()).filter(Boolean);
+      players = players.filter(player => !excluded.includes(player.name.toLowerCase()));
+    }
+    if (players.length < 2) {
+      return interaction.editReply("❌ Il faut au moins 2 joueurs après application des filtres.");
+    }
+
+    const randomize = mode === "random";
+    const round = createBracket(players, true);
+    const sessionCreated = createSession(key, {
+      mode,
+      control,
+      delai,
+      delaiRound,
+      roundNumber: 1,
+      round,
+      winners: [],
+      currentMatch: 0,
+      roundComplete: false,
+      channelId: key
+    });
+    if (!sessionCreated) {
+      return interaction.editReply("❌ Un tournoi vient d’être lancé dans ce salon.");
+    }
+
+    if (control === "manual") {
+      try {
+        await interaction.channel.send(mode === "bracket" ? renderFullBracket(round) : renderBracket(round));
+        await interaction.editReply(
+          "🍆 TEUB ROYALE — mode présentateur activé.\n\n" +
+          "Le tableau est prêt. Utilisez /teub-next pour lancer chaque combat, " +
+          "puis /teub-round pour passer au tour suivant ou annoncer le champion."
+        );
+      } catch (error) {
+        clearSession(key);
+        throw error;
+      }
+      return;
+    }
+
+    try {
+      await interaction.channel.send(mode === "bracket" ? renderFullBracket(round) : renderBracket(round));
+      await interaction.editReply("🔥 Tournoi lancé en mode automatique. Les résultats seront annoncés dans ce salon.");
+
+      let currentRound = round;
+      let roundNumber = 1;
+      let tournamentChampion = null;
+
+      while (!tournamentChampion) {
+        await startRound(roundNumber, interaction);
+        const winners = [];
+
+        for (const match of currentRound) {
+          if (!match.p2) {
+            winners.push(match.p1);
+            continue;
+          }
+          winners.push(await playMatch(match, interaction, delai));
+        }
+
+        if (winners.length === 1) {
+          tournamentChampion = winners[0];
+          break;
+        }
+
+        await endRound(roundNumber, delaiRound, interaction);
+        await wait(delaiRound);
+        currentRound = createBracket(winners, randomize);
+        await interaction.channel.send(renderBracket(currentRound));
+        roundNumber += 1;
+      }
+
+      await interaction.channel.send(championMessage(tournamentChampion));
+    } finally {
+      clearSession(key);
+    }
+  }
 };
+
+
