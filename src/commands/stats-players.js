@@ -78,12 +78,13 @@ module.exports = {
         statsPlayers.forEach((player, index) => {
             const daysSinceUpdate = getDaysSinceUpdate(player.lastUpdate);
             const isOutdated = daysSinceUpdate !== null && daysSinceUpdate > 14;
-            const isRecentlyUpdated = daysSinceUpdate !== null && daysSinceUpdate < 1;
-            const statusMarker = isOutdated ? "🔴 " : isRecentlyUpdated ? "🟢 " : "";
+            const isGreen = daysSinceUpdate !== null && daysSinceUpdate < 7;
+            const isOrange = daysSinceUpdate !== null && daysSinceUpdate >= 7 && daysSinceUpdate <= 14;
+            const statusMarker = isOutdated ? "🔴 " : isOrange ? "🟠 " : isGreen ? "🟢 " : "";
 
             classement +=
                 `${statusMarker}${index + 1}. **${player.name}**` +
-                `${isRecentlyUpdated ? ` *(0 jour AFK)*` : ""} — ` +
+                `${isGreen ? ` *(${daysSinceUpdate} jour${daysSinceUpdate > 1 ? "s" : ""} AFK)*` : ""} — ` +
                 `**${player.totalSansT4.toFixed(2)} pts**\n`;
 
             if (player.t4 > 0) {
