@@ -17,6 +17,7 @@ module.exports = {
         }
 
         const players = data.players || [];
+        const updateFilter = interaction.options.getString("mise_a_jour") || "tous";
 
         const getScore = (player, stat) => {
             return Number(player[stat]) || 0;
@@ -67,16 +68,27 @@ module.exports = {
                     t4,
                     totalSansT4,
                     totalAvecT4,
-                    lastUpdate: player.lastUpdate
+                    lastUpdate: player.lastUpdate,
+                    daysSinceUpdate: getDaysSinceUpdate(player.lastUpdate)
                 };
             })
             // Classement basé UNIQUEMENT sur la puissance sans Team 4
             .sort((a, b) => b.totalSansT4 - a.totalSansT4);
 
+        const visiblePlayers = statsPlayers.filter(player => {
+            if (updateFilter === "moins_7") {
+                return player.daysSinceUpdate !== null && player.daysSinceUpdate < 7;
+            }
+            if (updateFilter === "jusqua_14") {
+                return player.daysSinceUpdate !== null && player.daysSinceUpdate <= 14;
+            }
+            return true;
+        });
+
         let classement = "";
 
-        statsPlayers.forEach((player, index) => {
-            const daysSinceUpdate = getDaysSinceUpdate(player.lastUpdate);
+        visiblePlayers.forEach((player, index) => {
+            const daysSinceUpdate = player.daysSinceUpdate;
             const isOutdated = daysSinceUpdate !== null && daysSinceUpdate > 14;
             const isGreen = daysSinceUpdate !== null && daysSinceUpdate < 7;
             const isOrange = daysSinceUpdate !== null && daysSinceUpdate >= 7 && daysSinceUpdate <= 14;
@@ -105,9 +117,9 @@ module.exports = {
             .setTitle("📊 STATS PLAYERS")
             .setColor(0xFF00FF)
             .setDescription(
-                `👥 **${players.length} joueurs analysés**
-
-━━━━━━━━━━━━━━━━━━
+                `👥 **${visiblePlayers.length} joueur${visiblePlayers.length > 1 ? "s" : ""} affiché${visiblePlayers.length > 1 ? "s" : ""}**` +
+                `${updateFilter === "tous" ? ` sur ${players.length} analysés` : ""}` +
+                `\n\n━━━━━━━━━━━━━━━━━━
 
 🏆 **CLASSEMENT**
 

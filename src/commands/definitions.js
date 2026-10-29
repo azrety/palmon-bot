@@ -229,7 +229,17 @@ function buildCommands() {
 
           new SlashCommandBuilder()
           .setName("stats-players")
-          .setDescription("Voir les puissances totales de tout les joueurs dans l'ordre")
+          .setDescription("Voir les puissances totales des joueurs")
+          .addStringOption(o =>
+            o.setName("mise_a_jour")
+              .setDescription("Filtrer les joueurs selon leur dernière mise à jour")
+              .setRequired(false)
+              .addChoices(
+                { name: "Tous les joueurs", value: "tous" },
+                { name: "Moins de 7 jours", value: "moins_7" },
+                { name: "Jusqu'à 14 jours", value: "jusqua_14" }
+              )
+          )
 
   ].map(command => command.toJSON());
 }
