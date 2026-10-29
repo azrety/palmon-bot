@@ -84,7 +84,7 @@ module.exports = {
 
             classement +=
                 `${statusMarker}${index + 1}. **${player.name}**` +
-                `${isGreen ? ` *(${daysSinceUpdate} jour${daysSinceUpdate > 1 ? "s" : ""} AFK)*` : ""} — ` +
+                `${isGreen || isOrange ? ` *(${daysSinceUpdate} jour${daysSinceUpdate > 1 ? "s" : ""} AFK)*` : ""} — ` +
                 `**${player.totalSansT4.toFixed(2)} pts**\n`;
 
             if (player.t4 > 0) {
