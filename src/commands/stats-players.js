@@ -42,6 +42,15 @@ module.exports = {
             });
         };
 
+        const getDaysSinceUpdate = (date) => {
+            if (!date) return null;
+
+            const parsedDate = new Date(date);
+            if (isNaN(parsedDate.getTime())) return null;
+
+            return Math.floor((Date.now() - parsedDate.getTime()) / (24 * 60 * 60 * 1000));
+        };
+
         const statsPlayers = players
             .map(player => {
 
@@ -67,9 +76,11 @@ module.exports = {
         let classement = "";
 
         statsPlayers.forEach((player, index) => {
+            const daysSinceUpdate = getDaysSinceUpdate(player.lastUpdate);
+            const isOutdated = daysSinceUpdate !== null && daysSinceUpdate > 14;
 
             classement +=
-                `${index + 1}. **${player.name}** — ` +
+                `${isOutdated ? "🔴 " : ""}${index + 1}. **${player.name}** — ` +
                 `**${player.totalSansT4.toFixed(2)} pts**\n`;
 
             if (player.t4 > 0) {
@@ -78,7 +89,11 @@ module.exports = {
             }
 
             classement +=
-                `   🕒 Last UP : **${formatDate(player.lastUpdate)}**\n\n`;
+                `   🕒 Last UP : **${formatDate(player.lastUpdate)}**` +
+                (isOutdated
+                    ? `\n   🔴 **(${daysSinceUpdate} jours sans mise à jour)**`
+                    : "") +
+                `\n\n`;
 
         });
 
